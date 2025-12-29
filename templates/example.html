@@ -1,0 +1,530 @@
+<!DOCTYPE html>
+<html lang="ru" class="balenciaga-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE | Premium Sneakers</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Styles -->
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --white: #ffffff;
+            --black: #000000;
+            --gray-light: #f5f5f5;
+            --gray-dark: #2a2a2a;
+            --border: 1px solid rgba(0, 0, 0, 0.1);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --spacing-xs: 8px;
+            --spacing-sm: 16px;
+            --spacing-md: 24px;
+            --spacing-lg: 32px;
+            --spacing-xl: 48px;
+            --spacing-xxl: 64px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            overflow-x: hidden;
+            opacity: 0;
+            animation: fadeInBody 0.5s ease forwards;
+        }
+
+        @keyframes fadeInBody {
+            to { opacity: 1; }
+        }
+
+        /* Balenciaga Typography */
+        .balenciaga-heading {
+            font-weight: 900;
+            font-size: clamp(48px, 8vw, 96px);
+            letter-spacing: -0.02em;
+            line-height: 0.9;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .balenciaga-heading-md {
+            font-size: clamp(32px, 6vw, 64px);
+        }
+
+        .balenciaga-subheading {
+            font-weight: 300;
+            font-size: clamp(14px, 2vw, 18px);
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* Marquee (бегущая строка) */
+        .marquee-container {
+            position: relative;
+            overflow: hidden;
+            background: var(--black);
+            color: var(--white);
+            padding: var(--spacing-sm) 0;
+            border-bottom: var(--border);
+            width: 100%;
+        }
+
+        .marquee-track {
+            display: flex;
+            min-width: 200%;
+            animation: marquee 40s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-item {
+            padding: 0 var(--spacing-xl);
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Navigation */
+        .balenciaga-nav {
+            position: fixed;
+            top: 48px;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            padding: var(--spacing-sm) 0;
+            border-bottom: var(--border);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: var(--black);
+        }
+
+        .nav-menu {
+            display: flex;
+            gap: var(--spacing-xl);
+            align-items: center;
+        }
+
+        .nav-link {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--black);
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .nav-link:hover {
+            opacity: 1;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            color: var(--black);
+            font-size: 16px;
+            cursor: pointer;
+            padding: 8px;
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .nav-btn:hover {
+            opacity: 1;
+        }
+
+        /* Hero Section */
+        .balenciaga-hero {
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: var(--spacing-xxl) var(--spacing-md);
+        }
+
+        .hero-content {
+            max-width: 800px;
+            margin: 0 auto;
+        }
+
+        .hero-title {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .hero-subtitle {
+            margin-bottom: var(--spacing-xl);
+        }
+
+        .hero-cta {
+            display: inline-block;
+            padding: var(--spacing-sm) var(--spacing-xl);
+            background: var(--black);
+            color: var(--white);
+            text-decoration: none;
+            font-weight: 500;
+            font-size: 11px;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            border: 1px solid var(--black);
+            transition: var(--transition);
+            margin-top: var(--spacing-lg);
+        }
+
+        .hero-cta:hover {
+            background: var(--white);
+            color: var(--black);
+        }
+
+        /* Info Section */
+        .balenciaga-info {
+            padding: var(--spacing-xl) 0;
+            text-align: center;
+            border-top: var(--border);
+            border-bottom: var(--border);
+            background: var(--gray-light);
+        }
+
+        .info-title {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            margin-bottom: var(--spacing-sm);
+            opacity: 0.5;
+        }
+
+        .info-content {
+            font-size: 24px;
+            font-weight: 300;
+            letter-spacing: 0.05em;
+            line-height: 1.4;
+            max-width: 600px;
+            margin: 0 auto;
+        }
+
+        /* Collection Section */
+        .balenciaga-collection {
+            padding: var(--spacing-xxl) 0;
+            text-align: center;
+        }
+
+        .collection-title {
+            margin-bottom: var(--spacing-md);
+        }
+
+        .collection-description {
+            font-size: 18px;
+            font-weight: 300;
+            line-height: 1.6;
+            max-width: 600px;
+            margin: 0 auto var(--spacing-xl);
+            opacity: 0.7;
+        }
+
+        .collection-link {
+            display: inline-block;
+            padding: var(--spacing-sm) var(--spacing-xl);
+            border: var(--border);
+            color: var(--black);
+            text-decoration: none;
+            font-size: 11px;
+            font-weight: 500;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            transition: var(--transition);
+        }
+
+        .collection-link:hover {
+            background: var(--black);
+            color: var(--white);
+        }
+
+        /* Product Grid */
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: var(--spacing-lg);
+            margin-top: var(--spacing-xl);
+            padding: 0 var(--spacing-md);
+        }
+
+        .product-card {
+            text-decoration: none;
+            color: var(--black);
+            position: relative;
+        }
+
+        .product-image {
+            width: 100%;
+            height: 400px;
+            background: var(--gray-light);
+            margin-bottom: var(--spacing-sm);
+            position: relative;
+            overflow: hidden;
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-info {
+            padding: var(--spacing-xs) 0;
+        }
+
+        .product-brand {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            text-transform: uppercase;
+            opacity: 0.5;
+            margin-bottom: 4px;
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: var(--spacing-xs);
+        }
+
+        .product-price {
+            font-size: 16px;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs);
+        }
+
+        .price-original {
+            text-decoration: line-through;
+            opacity: 0.5;
+            font-size: 14px;
+        }
+
+        /* Footer */
+        .balenciaga-footer {
+            padding: var(--spacing-xl) 0;
+            border-top: var(--border);
+            text-align: center;
+            margin-top: var(--spacing-xxl);
+        }
+
+        .footer-text {
+            font-size: 11px;
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        .fade-in {
+            animation: fadeIn 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .delay-1 { animation-delay: 0.2s; }
+        .delay-2 { animation-delay: 0.4s; }
+        .delay-3 { animation-delay: 0.6s; }
+
+        /* Utility */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--spacing-md);
+        }
+
+        .text-center { text-align: center; }
+        .mt-1 { margin-top: var(--spacing-sm); }
+        .mt-2 { margin-top: var(--spacing-md); }
+        .mt-3 { margin-top: var(--spacing-lg); }
+        .mt-4 { margin-top: var(--spacing-xl); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .nav-menu {
+                display: none;
+            }
+
+            .product-grid {
+                grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+                gap: var(--spacing-md);
+            }
+
+            .marquee-item {
+                padding: 0 var(--spacing-md);
+                font-size: 9px;
+            }
+
+            .balenciaga-nav {
+                top: 32px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Marquee (бегущая строка) -->
+    <div class="marquee-container">
+        <div class="marquee-track">
+            {% for i in range(5) %}
+            <span class="marquee-item">STONE | PREMIUM SNEAKERS | BETWEEN 11/20/2025 AND 12/15/2025 MAY BE RETURNED</span>
+            {% endfor %}
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="balenciaga-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">STONE</a>
+            <div class="nav-menu">
+                <a href="/catalog" class="nav-link">CATALOG</a>
+                <a href="/collections" class="nav-link">COLLECTIONS</a>
+                <a href="/about" class="nav-link">ABOUT</a>
+                <a href="/contact" class="nav-link">CONTACT</a>
+            </div>
+            <div class="nav-actions">
+                <button class="nav-btn">🔍</button>
+                <button class="nav-btn">🛒</button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Hero Section -->
+        <section class="balenciaga-hero fade-in">
+            <div class="hero-content">
+                <h1 class="hero-title balenciaga-heading">STONE</h1>
+                <p class="hero-subtitle balenciaga-subheading">between 11/20/2025 and 12/15/2025 may be returned</p>
+                <a href="/catalog" class="hero-cta">SHOP NOW</a>
+            </div>
+        </section>
+
+        <!-- Info Section -->
+        <section class="balenciaga-info fade-in delay-1">
+            <div class="container">
+                <h2 class="info-title balenciaga-subheading">INFORMATION #LINDON</h2>
+                <p class="info-content">money model options, four, savings</p>
+            </div>
+        </section>
+
+        <!-- Collection Section -->
+        <section class="balenciaga-collection fade-in delay-2">
+            <div class="container">
+                <h2 class="collection-title balenciaga-heading-md">New Collection</h2>
+                <p class="collection-description">
+                    Explore our carefully curated selection of premium sneakers. Each pair is designed with meticulous attention to detail and crafted from the finest materials.
+                </p>
+                <a href="/catalog" class="collection-link">VIEW COLLECTION</a>
+
+                <!-- Product Grid -->
+                {% if featured_products %}
+                <div class="product-grid mt-4">
+                    {% for product in featured_products %}
+                    <a href="/product/{{ product.id }}" class="product-card">
+                        <div class="product-image">
+                            <img src="{{ product.image_url }}" alt="{{ product.name }}">
+                        </div>
+                        <div class="product-info">
+                            <div class="product-brand">{{ product.brand or 'STONE' }}</div>
+                            <div class="product-name">{{ product.name }}</div>
+                            <div class="product-price">
+                                <span>${{ product.price }}</span>
+                                {% if product.discount_percent %}
+                                <span class="price-original">${{ (product.price / (1 - product.discount_percent/100)) | round(2) }}</span>
+                                {% endif %}
+                            </div>
+                        </div>
+                    </a>
+                    {% endfor %}
+                </div>
+                {% endif %}
+            </div>
+        </section>
+    </main>
+
+    <!-- Footer -->
+    <footer class="balenciaga-footer">
+        <p class="footer-text">STONE © {{ current_year }}</p>
+    </footer>
+
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.ready();
+        }
+
+        // Fade-in animations
+        document.addEventListener('DOMContentLoaded', () => {
+            const fadeElements = document.querySelectorAll('.fade-in');
+            fadeElements.forEach((el, index) => {
+                setTimeout(() => {
+                    el.style.opacity = '1';
+                }, index * 200);
+            });
+
+            // Duplicate marquee for seamless loop
+            const marqueeTrack = document.querySelector('.marquee-track');
+            if (marqueeTrack) {
+                marqueeTrack.innerHTML += marqueeTrack.innerHTML;
+            }
+        });
+    </script>
+</body>
+</html>

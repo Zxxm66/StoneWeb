@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Управление виджетами WebApp</title>
+    <style>
+        .widgets-container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+
+        .widget-card {
+            border: 1px solid #ddd;
+            margin-bottom: 20px;
+            padding: 20px;
+            border-radius: 8px;
+        }
+
+        .widget-type {
+            font-weight: bold;
+            color: #333;
+        }
+
+        .widget-content {
+            margin: 10px 0;
+            padding: 10px;
+            background: #f5f5f5;
+        }
+
+        .config-item {
+            margin: 5px 0;
+        }
+    </style>
+</head>
+<body>
+    <div class="widgets-container">
+        <h1>Управление виджетами WebApp</h1>
+
+        <button onclick="addWidget()">+ Добавить виджет</button>
+
+        <div id="widgets-list">
+            {% for widget in widgets %}
+            <div class="widget-card" data-id="{{ widget.id }}">
+                <div class="widget-type">{{ widget.widget_type }}</div>
+                <div class="widget-content">{{ widget.content }}</div>
+                <div class="widget-config">
+                    {% if widget.config %}
+                        {% for key, value in widget.config.items() %}
+                        <div class="config-item">{{ key }}: {{ value }}</div>
+                        {% endfor %}
+                    {% endif %}
+                </div>
+                <button onclick="editWidget({{ widget.id }})">Редактировать</button>
+                <button onclick="deleteWidget({{ widget.id }})">Удалить</button>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+
+    <script>
+        async function addWidget() {
+            const type = prompt('Тип виджета (marquee/hero/collection/info):');
+            const content = prompt('Содержимое:');
+
+            const response = await fetch('/api/webapp/widgets', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify({
+                    widget_type: type,
+                    content: content,
+                    config: {speed: 20, color: '#ffffff'}
+                })
+            });
+
+            if (response.ok) {
+                location.reload();
+            }
+        }
+    </script>
+</body>
+</html>

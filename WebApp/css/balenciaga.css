@@ -1,0 +1,402 @@
+/* Balenciaga Inspired Minimalism */
+:root {
+    --black: #000000;
+    --white: #FFFFFF;
+    --gray: #1A1A1A;
+    --light-gray: #2A2A2A;
+    --border: 1px solid rgba(255, 255, 255, 0.1);
+    --spacing-xs: 8px;
+    --spacing-sm: 16px;
+    --spacing-md: 24px;
+    --spacing-lg: 32px;
+    --spacing-xl: 48px;
+    --spacing-xxl: 64px;
+}
+
+/* Типографика Balenciaga */
+.balenciaga-heading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 900;
+    font-size: clamp(32px, 8vw, 96px);
+    letter-spacing: -0.02em;
+    line-height: 0.9;
+    text-transform: uppercase;
+    margin: 0;
+}
+
+.balenciaga-heading-lg {
+    font-size: clamp(48px, 10vw, 128px);
+}
+
+.balenciaga-heading-sm {
+    font-size: clamp(24px, 5vw, 48px);
+}
+
+.balenciaga-subheading {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: clamp(12px, 2vw, 16px);
+    letter-spacing: 0.2em;
+    line-height: 1.4;
+    text-transform: uppercase;
+    opacity: 0.7;
+}
+
+.balenciaga-body {
+    font-family: 'Inter', sans-serif;
+    font-weight: 300;
+    font-size: 16px;
+    line-height: 1.6;
+    letter-spacing: 0.02em;
+}
+
+/* Layout */
+.container {
+    max-width: 1400px;
+    margin: 0 auto;
+    padding: 0 var(--spacing-md);
+}
+
+.section {
+    padding: var(--spacing-xxl) 0;
+    position: relative;
+}
+
+.section-sm {
+    padding: var(--spacing-xl) 0;
+}
+
+.section-lg {
+    padding: calc(var(--spacing-xxl) * 2) 0;
+}
+
+/* Виджет: Marquee */
+.marquee-widget {
+    background: var(--black);
+    padding: var(--spacing-sm) 0;
+    border-top: var(--border);
+    border-bottom: var(--border);
+    overflow: hidden;
+    position: relative;
+}
+
+.marquee-content {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.3em;
+    text-transform: uppercase;
+    white-space: nowrap;
+    display: inline-block;
+    padding-right: 2em;
+}
+
+/* Виджет: Hero */
+.hero-widget {
+    min-height: 90vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    position: relative;
+    padding: var(--spacing-xxl) var(--spacing-md);
+}
+
+.hero-content {
+    max-width: 900px;
+    margin: 0 auto;
+}
+
+.hero-title {
+    margin-bottom: var(--spacing-md);
+    position: relative;
+}
+
+.hero-title::after {
+    content: '';
+    position: absolute;
+    bottom: -12px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 100px;
+    height: 1px;
+    background: var(--white);
+    opacity: 0.2;
+}
+
+.hero-subtitle {
+    margin-bottom: var(--spacing-xl);
+}
+
+.hero-cta {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-xl);
+    background: var(--white);
+    color: var(--black);
+    text-decoration: none;
+    font-weight: 600;
+    font-size: 12px;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    border: none;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    margin-top: var(--spacing-lg);
+}
+
+.hero-cta:hover {
+    background: rgba(255, 255, 255, 0.9);
+    transform: translateY(-2px);
+}
+
+/* Виджет: Info */
+.info-widget {
+    padding: var(--spacing-xl) 0;
+    text-align: center;
+    border-bottom: var(--border);
+}
+
+.info-title {
+    font-size: 11px;
+    letter-spacing: 0.3em;
+    margin-bottom: var(--spacing-sm);
+    opacity: 0.5;
+}
+
+.info-content {
+    font-size: 24px;
+    font-weight: 300;
+    letter-spacing: 0.05em;
+    line-height: 1.4;
+    max-width: 600px;
+    margin: 0 auto;
+}
+
+/* Виджет: Collection */
+.collection-widget {
+    padding: var(--spacing-xxl) 0;
+    text-align: center;
+}
+
+.collection-title {
+    margin-bottom: var(--spacing-md);
+}
+
+.collection-description {
+    font-size: 18px;
+    font-weight: 300;
+    line-height: 1.6;
+    max-width: 600px;
+    margin: 0 auto var(--spacing-xl);
+    opacity: 0.7;
+}
+
+.collection-link {
+    display: inline-block;
+    padding: var(--spacing-sm) var(--spacing-xl);
+    border: var(--border);
+    color: var(--white);
+    text-decoration: none;
+    font-size: 12px;
+    font-weight: 500;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    transition: all 0.3s ease;
+}
+
+.collection-link:hover {
+    background: var(--white);
+    color: var(--black);
+}
+
+/* Навигация */
+.nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    background: rgba(0, 0, 0, 0.95);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    padding: var(--spacing-sm) var(--spacing-md);
+    border-bottom: var(--border);
+}
+
+.nav-container {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+.nav-logo {
+    font-size: 24px;
+    font-weight: 900;
+    letter-spacing: 0.1em;
+    text-decoration: none;
+    color: var(--white);
+}
+
+.nav-menu {
+    display: flex;
+    gap: var(--spacing-xl);
+    align-items: center;
+}
+
+.nav-link {
+    font-size: 12px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    text-decoration: none;
+    color: var(--white);
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.nav-link:hover {
+    opacity: 1;
+}
+
+.nav-actions {
+    display: flex;
+    gap: var(--spacing-md);
+    align-items: center;
+}
+
+.nav-btn {
+    background: none;
+    border: none;
+    color: var(--white);
+    font-size: 16px;
+    cursor: pointer;
+    padding: 8px;
+    opacity: 0.7;
+    transition: opacity 0.3s ease;
+}
+
+.nav-btn:hover {
+    opacity: 1;
+}
+
+/* Продукты */
+.product-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: var(--spacing-lg);
+    margin-top: var(--spacing-xl);
+}
+
+.product-card {
+    position: relative;
+    text-decoration: none;
+    color: var(--white);
+}
+
+.product-image {
+    width: 100%;
+    height: 400px;
+    background: var(--gray);
+    margin-bottom: var(--spacing-sm);
+    position: relative;
+    overflow: hidden;
+}
+
+.product-image img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 0.6s ease;
+}
+
+.product-card:hover .product-image img {
+    transform: scale(1.05);
+}
+
+.product-info {
+    padding: var(--spacing-xs) 0;
+}
+
+.product-brand {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    text-transform: uppercase;
+    opacity: 0.5;
+    margin-bottom: 4px;
+}
+
+.product-name {
+    font-size: 14px;
+    font-weight: 400;
+    margin-bottom: var(--spacing-xs);
+}
+
+.product-price {
+    font-size: 16px;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: var(--spacing-xs);
+}
+
+.price-original {
+    text-decoration: line-through;
+    opacity: 0.5;
+    font-size: 14px;
+}
+
+/* Футер */
+.footer {
+    padding: var(--spacing-xl) 0;
+    border-top: var(--border);
+    text-align: center;
+}
+
+.footer-text {
+    font-size: 11px;
+    font-weight: 300;
+    letter-spacing: 0.2em;
+    opacity: 0.5;
+    text-transform: uppercase;
+}
+
+/* Утилиты */
+.text-center { text-align: center; }
+.text-uppercase { text-transform: uppercase; }
+.text-muted { opacity: 0.7; }
+
+.mt-sm { margin-top: var(--spacing-sm); }
+.mt-md { margin-top: var(--spacing-md); }
+.mt-lg { margin-top: var(--spacing-lg); }
+.mt-xl { margin-top: var(--spacing-xl); }
+
+.mb-sm { margin-bottom: var(--spacing-sm); }
+.mb-md { margin-bottom: var(--spacing-md); }
+.mb-lg { margin-bottom: var(--spacing-lg); }
+.mb-xl { margin-bottom: var(--spacing-xl); }
+
+.p-sm { padding: var(--spacing-sm); }
+.p-md { padding: var(--spacing-md); }
+.p-lg { padding: var(--spacing-lg); }
+.p-xl { padding: var(--spacing-xl); }
+
+/* Responsive */
+@media (max-width: 768px) {
+    .nav-menu {
+        display: none;
+    }
+
+    .product-grid {
+        grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+        gap: var(--spacing-md);
+    }
+
+    .section-lg {
+        padding: var(--spacing-xxl) 0;
+    }
+}
+
+@media (min-width: 769px) {
+    .mobile-only {
+        display: none;
+    }
+}

@@ -1,0 +1,1339 @@
+<!DOCTYPE html>
+<html lang="ru" class="stone-theme">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE | Premium Clothing</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap" rel="stylesheet">
+
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+
+    <!-- Styles -->
+    <style>
+        /* Reset & Base */
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --white: #ffffff;
+            --black: #000000;
+            --gray-light: #f5f5f5;
+            --gray-dark: #1a1a1a;
+            --stone-beige: #f8f5f0;
+            --stone-gray: #e8e6e1;
+            --stone-dark: #2c2c2c;
+            --border: 1px solid rgba(0, 0, 0, 0.08);
+            --transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            --spacing-xs: 8px;
+            --spacing-sm: 16px;
+            --spacing-md: 24px;
+            --spacing-lg: 32px;
+            --spacing-xl: 48px;
+            --spacing-xxl: 64px;
+            --container-padding: 20px;
+        }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--white);
+            color: var(--black);
+            line-height: 1.6;
+            overflow-x: hidden;
+            opacity: 0;
+            animation: fadeInBody 0.5s ease forwards;
+            padding-bottom: 80px; /* Для нижней навигации */
+        }
+
+        @keyframes fadeInBody {
+            to { opacity: 1; }
+        }
+
+        /* Stone Typography */
+        .stone-heading {
+            font-weight: 900;
+            font-size: clamp(32px, 6vw, 48px);
+            letter-spacing: -0.02em;
+            line-height: 1;
+            text-transform: uppercase;
+            margin: 0;
+        }
+
+        .stone-heading-md {
+            font-size: clamp(24px, 5vw, 32px);
+        }
+
+        .stone-subheading {
+            font-weight: 300;
+            font-size: clamp(12px, 2vw, 14px);
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            opacity: 0.7;
+        }
+
+        /* Marquee (бегущая строка) */
+        .marquee-container {
+            position: relative;
+            overflow: hidden;
+            background: var(--black);
+            color: var(--white);
+            padding: 14px 0;
+            border-bottom: var(--border);
+            width: 100%;
+            display: flex;
+            z-index: 1001;
+        }
+
+        .marquee-track {
+            display: flex;
+            flex-shrink: 0;
+            min-width: 200%;
+            animation: marquee 30s linear infinite;
+            white-space: nowrap;
+        }
+
+        .marquee-track:hover {
+            animation-play-state: paused;
+        }
+
+        .marquee-item {
+            padding: 0 var(--spacing-xl);
+            font-size: 10px;
+            font-weight: 300;
+            letter-spacing: 0.3em;
+            text-transform: uppercase;
+            flex-shrink: 0;
+        }
+
+        @keyframes marquee {
+            0% { transform: translateX(0); }
+            100% { transform: translateX(-50%); }
+        }
+
+        /* Navigation - Glass Effect */
+        .stone-nav {
+            position: sticky;
+            top: 0;
+            left: 0;
+            width: 100%;
+            z-index: 1000;
+            background: rgba(255, 255, 255, 0.85);
+            backdrop-filter: blur(20px);
+            -webkit-backdrop-filter: blur(20px);
+            padding: var(--spacing-sm) 0;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.2);
+            box-shadow: 0 1px 20px rgba(0, 0, 0, 0.05);
+            transition: var(--transition);
+        }
+
+        .nav-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .nav-logo {
+            font-size: 24px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            color: var(--black);
+            transition: var(--transition);
+        }
+
+        .nav-logo:hover {
+            opacity: 0.7;
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: var(--spacing-md);
+            align-items: center;
+        }
+
+        .nav-btn {
+            background: none;
+            border: none;
+            cursor: pointer;
+            padding: 8px;
+            transition: var(--transition);
+            position: relative;
+            width: 40px;
+            height: 40px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            border-radius: 50%;
+            background: rgba(0, 0, 0, 0.03);
+        }
+
+        .nav-btn:hover {
+            background: rgba(0, 0, 0, 0.08);
+            transform: scale(1.05);
+        }
+
+        .nav-btn img {
+            width: 20px;
+            height: 20px;
+            filter: invert(1) brightness(0);
+            opacity: 0.8;
+        }
+
+        .cart-count {
+            position: absolute;
+            top: -2px;
+            right: -2px;
+            background: var(--black);
+            color: var(--white);
+            font-size: 10px;
+            min-width: 18px;
+            height: 18px;
+            border-radius: 9px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            font-weight: 600;
+        }
+
+        /* Compact Carousel - Swipeable */
+        .stone-carousel {
+            position: relative;
+            height: 45vh; /* Уменьшено с 70vh */
+            max-height: 400px; /* Ограничиваем максимальную высоту */
+            overflow: hidden;
+            background: var(--gray-light);
+            touch-action: pan-y;
+            cursor: grab;
+            user-select: none;
+            margin-top: var(--spacing-sm); /* Добавим небольшой отступ сверху */
+        }
+
+        .stone-carousel:active {
+            cursor: grabbing;
+        }
+
+        .carousel-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            will-change: transform;
+        }
+
+        .carousel-slide {
+            flex: 0 0 100%;
+            height: 100%;
+            position: relative;
+            overflow: hidden;
+            flex-shrink: 0;
+        }
+
+        .carousel-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.5s ease;
+        }
+
+        .carousel-slide.active .carousel-image {
+            transform: scale(1);
+        }
+
+        .carousel-slide:not(.active) .carousel-image {
+            transform: scale(1.05);
+        }
+
+        /* Carousel Dots */
+        .carousel-dots {
+            position: absolute;
+            bottom: 16px; /* Уменьшено с 24px */
+            left: 0;
+            width: 100%;
+            display: flex;
+            justify-content: center;
+            gap: 8px; /* Уменьшено с 10px */
+            z-index: 10;
+            padding: var(--spacing-xs);
+        }
+
+        .carousel-dot {
+            width: 6px; /* Уменьшено с 8px */
+            height: 6px; /* Уменьшено с 8px */
+            border-radius: 50%;
+            background: rgba(255, 255, 255, 0.4);
+            border: none;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            padding: 0;
+            position: relative;
+        }
+
+        .carousel-dot::after {
+            content: '';
+            position: absolute;
+            top: -4px;
+            left: -4px;
+            right: -4px;
+            bottom: -4px;
+            border-radius: 50%;
+            background: transparent;
+            transition: background 0.3s ease;
+        }
+
+        .carousel-dot:hover::after {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        .carousel-dot.active {
+            background: var(--white);
+            transform: scale(1.3);
+            box-shadow: 0 0 8px rgba(255, 255, 255, 0.5);
+        }
+
+        /* Categories Section */
+        .stone-categories {
+            padding: var(--spacing-lg) var(--container-padding); /* Уменьшено с xl */
+            background: var(--white);
+        }
+
+        .categories-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: var(--spacing-md); /* Уменьшено с lg */
+        }
+
+        .categories-title {
+            font-weight: 900;
+            font-size: 22px; /* Уменьшено с 24px */
+            text-transform: uppercase;
+        }
+
+        .categories-all {
+            font-size: 11px; /* Уменьшено с 12px */
+            font-weight: 300;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            text-decoration: none;
+            color: var(--black);
+            opacity: 0.7;
+            transition: var(--transition);
+        }
+
+        .categories-all:hover {
+            opacity: 1;
+        }
+
+        .categories-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(110px, 1fr)); /* Уменьшено с 120px */
+            gap: var(--spacing-xs); /* Уменьшено с sm */
+            margin-bottom: var(--spacing-lg); /* Уменьшено с xl */
+        }
+
+        .category-card {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-decoration: none;
+            color: var(--black);
+            transition: var(--transition);
+            padding: var(--spacing-xs); /* Уменьшено с sm */
+            border-radius: 8px; /* Уменьшено с 12px */
+        }
+
+        .category-card:hover {
+            background: var(--gray-light);
+            transform: translateY(-2px);
+        }
+
+        .category-icon {
+            width: 56px; /* Уменьшено с 64px */
+            height: 56px; /* Уменьшено с 64px */
+            border-radius: 50%;
+            background: linear-gradient(135deg, rgba(0,0,0,0.05) 0%, rgba(0,0,0,0.02) 100%);
+            margin-bottom: var(--spacing-xs); /* Уменьшено с sm */
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 20px; /* Уменьшено с 24px */
+            transition: var(--transition);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(0, 0, 0, 0.05);
+        }
+
+        .category-card:hover .category-icon {
+            transform: scale(1.1) rotate(5deg);
+        }
+
+        .category-name {
+            font-size: 11px; /* Уменьшено с 12px */
+            font-weight: 400;
+            text-align: center;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Products Section */
+        .stone-products {
+            padding: 0 var(--container-padding) var(--spacing-lg); /* Уменьшено с xl */
+        }
+
+        .products-header {
+            margin-bottom: var(--spacing-md); /* Уменьшено с lg */
+        }
+
+        .products-title {
+            font-weight: 900;
+            font-size: 22px; /* Уменьшено с 24px */
+            text-transform: uppercase;
+            margin-bottom: var(--spacing-xs); /* Уменьшено с sm */
+        }
+
+        .products-subtitle {
+            font-size: 13px; /* Уменьшено с 14px */
+            font-weight: 300;
+            opacity: 0.7;
+            max-width: 600px;
+        }
+
+        .products-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); /* Уменьшено с 280px */
+            gap: var(--spacing-md); /* Уменьшено с lg */
+        }
+
+        .product-card {
+            text-decoration: none;
+            color: var(--black);
+            position: relative;
+            transition: var(--transition);
+        }
+
+        .product-card:hover {
+            transform: translateY(-4px);
+        }
+
+        .product-image {
+            width: 100%;
+            height: 320px; /* Уменьшено с 380px */
+            background: var(--gray-light);
+            margin-bottom: var(--spacing-xs); /* Уменьшено с sm */
+            position: relative;
+            overflow: hidden;
+            border-radius: 6px; /* Уменьшено с 8px */
+        }
+
+        .product-image img {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            transition: transform 0.6s ease;
+        }
+
+        .product-card:hover .product-image img {
+            transform: scale(1.05);
+        }
+
+        .product-badge {
+            position: absolute;
+            top: var(--spacing-xs); /* Уменьшено с sm */
+            left: var(--spacing-xs); /* Уменьшено с sm */
+            background: var(--black);
+            color: var(--white);
+            padding: 4px 8px; /* Уменьшено с 6px 12px */
+            font-size: 9px; /* Уменьшено с 10px */
+            font-weight: 600;
+            letter-spacing: 0.1em;
+            text-transform: uppercase;
+            border-radius: 3px; /* Уменьшено с 4px */
+            z-index: 2;
+        }
+
+        .product-badge.sale {
+            background: #ff3b30;
+        }
+
+        .product-info {
+            padding: var(--spacing-xs) 0;
+        }
+
+        .product-name {
+            font-size: 14px;
+            font-weight: 400;
+            margin-bottom: 4px;
+        }
+
+        .product-color {
+            font-size: 11px; /* Уменьшено с 12px */
+            font-weight: 300;
+            opacity: 0.7;
+            margin-bottom: var(--spacing-xs); /* Уменьшено с sm */
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .product-price {
+            display: flex;
+            align-items: center;
+            gap: var(--spacing-xs); /* Уменьшено с sm */
+            font-weight: 600;
+        }
+
+        .price-current {
+            font-size: 16px; /* Уменьшено с 18px */
+        }
+
+        .price-original {
+            font-size: 13px; /* Уменьшено с 14px */
+            text-decoration: line-through;
+            opacity: 0.5;
+        }
+
+        .price-discount {
+            color: #ff3b30;
+            font-size: 11px; /* Уменьшено с 12px */
+            font-weight: 600;
+        }
+
+/* Bottom Navigation - New Telegram Style (White-Gray Theme) */
+.bottom-nav {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    z-index: 1000;
+    display: none;
+    padding: 16px 20px 24px 20px;
+    background: transparent;
+}
+
+.bottom-nav::before {
+    content: '';
+
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: linear-gradient(
+        to top,
+        rgba(255, 255, 255, 0.98) 0%,
+        rgba(255, 255, 255, 0.85) 50%,
+        rgba(255, 255, 255, 0) 100%
+    );
+    backdrop-filter: blur(40px);
+    -webkit-backdrop-filter: blur(40px);
+    mask-image: linear-gradient(
+        to top,
+        black 0%,
+        black 80%,
+        transparent 100%
+    );
+    z-index: -1;
+}
+
+.bottom-nav-container {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 440px;
+    margin: 0 auto;
+    padding: 12px 16px;
+    background: rgba(255, 255, 255, 0.85);
+    backdrop-filter: blur(30px);
+    -webkit-backdrop-filter: blur(30px);
+    border-radius: 24px;
+    border: 1px solid rgba(255, 255, 255, 0.6);
+    box-shadow:
+        0 8px 32px rgba(0, 0, 0, 0.05),
+        0 4px 12px rgba(0, 0, 0, 0.02),
+        inset 0 1px 0 rgba(255, 255, 255, 0.9);
+}
+
+.nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-decoration: none;
+    padding: 10px 14px;
+    border-radius: 16px;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    min-width: 70px;
+}
+
+.nav-item:hover {
+    background: rgba(0, 0, 0, 0.03);
+}
+
+.nav-item.active {
+    background: rgba(255, 255, 255, 0.9);
+    box-shadow: 0 2px 12px rgba(0, 0, 0, 0.05);
+}
+
+.nav-icon {
+    width: 22px;
+    height: 22px;
+    margin-bottom: 6px;
+    filter: invert(0.3);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active .nav-icon {
+    opacity: 1;
+    filter: invert(0.1);
+    transform: scale(1.05);
+}
+
+.nav-label {
+    font-size: 12px;
+    font-weight: 500;
+    color: rgba(0, 0, 0, 0.6);
+    opacity: 0.7;
+    transition: all 0.3s ease;
+}
+
+.nav-item.active .nav-label {
+    opacity: 1;
+    color: rgba(0, 0, 0, 0.9);
+    font-weight: 600;
+}
+
+/* Активная точка индикации (светло-серая) */
+.nav-item.active::after {
+    content: '';
+    position: absolute;
+    top: 6px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 4px;
+    height: 4px;
+    background: rgba(0, 0, 0, 0.3);
+    border-radius: 50%;
+}
+
+/* Responsive */
+@media (max-width: 768px) {
+    .bottom-nav {
+        display: block;
+    }
+
+    .bottom-nav-container {
+        max-width: 100%;
+        padding: 10px 12px;
+        border-radius: 20px;
+        background: rgba(255, 255, 255, 0.9);
+    }
+
+    .nav-item {
+        padding: 8px 10px;
+        min-width: 60px;
+    }
+
+    .nav-icon {
+        width: 20px;
+        height: 20px;
+        margin-bottom: 4px;
+    }
+
+    .nav-label {
+        font-size: 11px;
+    }
+}
+
+@media (max-width: 480px) {
+    .bottom-nav {
+        padding: 12px 16px 20px 16px;
+    }
+
+    .bottom-nav-container {
+        padding: 8px 10px;
+        border-radius: 18px;
+    }
+
+    .nav-item {
+        padding: 6px 8px;
+        min-width: 55px;
+    }
+
+    .nav-icon {
+        width: 18px;
+        height: 18px;
+    }
+
+    .nav-label {
+        font-size: 10px;
+    }
+}
+
+/* Темная тема */
+@media (prefers-color-scheme: dark) {
+    .bottom-nav::before {
+        background: linear-gradient(
+            to top,
+            rgba(20, 20, 20, 0.95) 0%,
+            rgba(30, 30, 30, 0.85) 50%,
+            rgba(40, 40, 40, 0) 100%
+        );
+    }
+
+    .bottom-nav-container {
+        background: rgba(40, 40, 40, 0.85);
+        border: 1px solid rgba(255, 255, 255, 0.1);
+        box-shadow:
+            0 8px 32px rgba(0, 0, 0, 0.3),
+            0 4px 12px rgba(0, 0, 0, 0.15),
+            inset 0 1px 0 rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item:hover {
+        background: rgba(255, 255, 255, 0.05);
+    }
+
+    .nav-item.active {
+        background: rgba(255, 255, 255, 0.12);
+        box-shadow: 0 2px 12px rgba(0, 0, 0, 0.3);
+    }
+
+    .nav-icon {
+        filter: invert(0.9) brightness(1.2);
+        opacity: 0.6;
+    }
+
+    .nav-item.active .nav-icon {
+        opacity: 1;
+        filter: invert(1) brightness(1.5);
+    }
+
+    .nav-label {
+        color: rgba(255, 255, 255, 0.7);
+    }
+
+    .nav-item.active .nav-label {
+        color: rgba(255, 255, 255, 0.95);
+    }
+
+    .nav-item.active::after {
+        background: rgba(255, 255, 255, 0.6);
+    }
+}
+        /* Footer */
+        .stone-footer {
+            padding: var(--spacing-lg) var(--container-padding); /* Уменьшено с xl */
+            border-top: var(--border);
+            text-align: center;
+            background: var(--white);
+        }
+
+        .footer-text {
+            font-size: 10px; /* Уменьшено с 11px */
+            font-weight: 300;
+            letter-spacing: 0.2em;
+            opacity: 0.5;
+            text-transform: uppercase;
+        }
+
+        /* Animations */
+        @keyframes fadeIn {
+            from { opacity: 0; }
+            to { opacity: 1; }
+        }
+
+        @keyframes slideInUp {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Utility */
+        .container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 0 var(--container-padding);
+        }
+
+        .mt-1 { margin-top: var(--spacing-sm); }
+        .mt-2 { margin-top: var(--spacing-md); }
+        .mt-3 { margin-top: var(--spacing-lg); }
+        .mt-4 { margin-top: var(--spacing-xl); }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            :root {
+                --container-padding: 16px;
+            }
+
+            .stone-carousel {
+                height: 35vh; /* Уменьшено с 40vh */
+                max-height: 280px;
+            }
+
+            .categories-grid {
+                grid-template-columns: repeat(3, 1fr);
+                gap: var(--spacing-xs);
+            }
+
+            .category-icon {
+                width: 48px; /* Уменьшено с 56px */
+                height: 48px; /* Уменьшено с 56px */
+                font-size: 18px; /* Уменьшено с 20px */
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)); /* Уменьшено с 160px */
+                gap: var(--spacing-sm); /* Уменьшено с md */
+            }
+
+            .product-image {
+                height: 180px; /* Уменьшено с 200px */
+            }
+
+            .bottom-nav {
+                display: block;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .categories-grid {
+                grid-template-columns: repeat(3, 1fr); /* Изменено с 4 на 3 */
+            }
+
+            .products-grid {
+                grid-template-columns: repeat(2, 1fr);
+                gap: var(--spacing-xs); /* Уменьшено с sm */
+            }
+
+            .product-image {
+                height: 160px; /* Уменьшено с 180px */
+            }
+
+            .stone-carousel {
+                height: 30vh; /* Еще меньше на очень маленьких экранах */
+                max-height: 240px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Marquee (бегущая строка) -->
+    <div class="marquee-container">
+        <div class="marquee-track">
+            <span class="marquee-item">STONE | BUY SNEAKERS | BETWEEN 02/14/2026 AND 12/15/2027 MAY BE RETURNED</span>
+            <span class="marquee-item">STONE | BUY SNEAKERS | BETWEEN 02/14/2026 AND 12/15/2027 MAY BE RETURNED</span>
+            <span class="marquee-item">STONE | BUY SNEAKERS | BETWEEN 02/14/2026 AND 12/15/2027 MAY BE RETURNED</span>
+            <span class="marquee-item">STONE | BUY SNEAKERS | BETWEEN 02/14/2026 AND 12/15/2027 MAY BE RETURNED</span>
+            <span class="marquee-item">STONE | BUY SNEAKERS | BETWEEN 02/14/2026 AND 12/15/2027 MAY BE RETURNED</span>
+        </div>
+    </div>
+
+    <!-- Navigation - Glass Effect -->
+    <nav class="stone-nav">
+        <div class="nav-container">
+            <a href="/" class="nav-logo">STONE</a>
+            <div class="nav-actions">
+                <button class="nav-btn" id="searchBtn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTExIDE5QzE1LjQxODMgMTkgMTkgMTUuNDE4MyAxOSAxMUMxOSA2LjU4MTcyIDE1LjQxODMgMyAxMSAzQzYuNTgxNzIgMyAzIDYuNTgxNzIgMyAxMUMzIDE1LjQxODMgNi41ODE3MiAxOSAxMSAxOVoiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMSAyMUwxNi42NSAxNi42NSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==" alt="Search">
+                </button>
+                <button class="nav-btn" id="cartBtn">
+                    <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkgMjJDMTAuMTA0NiAyMiAxMSAyMS4xMDQ2IDExIDIwQzExIDE4Ljg5NTQgMTAuMTA0NiAxOCA5IDE4QzcuODk1NDMgMTggNyAxOC44OTU0IDcgMjBDNyAyMS4xMDQ2IDcuODk1NDMgMjIgOSAyMloiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMCAyMkMyMS4xMDQ2IDIyIDIyIDIxLjEwNDYgMjIgMjBDMjIgMTguODk1NCAyMS4xMDQ2IDE4IDIwIDE4QzE4Ljg5NTQgMTggMTggMTguODk1NCAxOCAyMEMxOCAyMS4xMDQ2IDE4Ljg5NTQgMjIgMjAgMjJaIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNNSA0SDdMNyAxN0gxOSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTcgMTFMOC41IDhIOS41TDEwLjUgMTFIMTJMOC41IDRINy41IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K" alt="Cart">
+                    <span class="cart-count">0</span>
+                </button>
+            </div>
+        </div>
+    </nav>
+
+    <main>
+        <!-- Carousel - Compact & Swipeable -->
+        <section class="stone-carousel" id="carousel">
+            <div class="carousel-track" id="carouselTrack">
+                <!-- Слайд 1 -->
+                <div class="carousel-slide active">
+                    <img src="https://images.unsplash.com/photo-1558769132-cb1f458e43b5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                         alt="STONE Collection"
+                         class="carousel-image">
+                </div>
+                <!-- Слайд 2 -->
+                <div class="carousel-slide">
+                    <img src="https://images.unsplash.com/photo-1543087903-1ac2ec7aa8c5?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                         alt="New Arrivals"
+                         class="carousel-image">
+                </div>
+                <!-- Слайд 3 -->
+                <div class="carousel-slide">
+                    <img src="https://images.unsplash.com/photo-1523381210434-271e8be1f52b?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                         alt="Premium Quality"
+                         class="carousel-image">
+                </div>
+                <!-- Слайд 4 -->
+                <div class="carousel-slide">
+                    <img src="https://images.unsplash.com/photo-1490481651871-ab68de25d43d?ixlib=rb-4.0.3&auto=format&fit=crop&w=2000&q=80"
+                         alt="Limited Edition"
+                         class="carousel-image">
+                </div>
+            </div>
+            <div class="carousel-dots" id="carouselDots"></div>
+        </section>
+
+        <!-- Categories Section -->
+        <section class="stone-categories">
+            <div class="categories-header">
+                <h2 class="categories-title">Категории</h2>
+                <a href="/catalog" class="categories-all">ВСЕ КАТЕГОРИИ</a>
+            </div>
+            <div class="categories-grid">
+                <a href="/category/sale" class="category-card">
+                    <div class="category-icon">🔥</div>
+                    <span class="category-name">СКИДКИ</span>
+                </a>
+                <a href="/category/function-100" class="category-card">
+                    <div class="category-icon">⚡</div>
+                    <span class="category-name">ФУНКЦИЯ 100</span>
+                </a>
+                <a href="/category/right-work" class="category-card">
+                    <div class="category-icon">👕</div>
+                    <span class="category-name">ФУТБОЛКИ</span>
+                </a>
+                <a href="/category/jilfi" class="category-card">
+                    <div class="category-icon">👖</div>
+                    <span class="category-name">ДЖИНСЫ</span>
+                </a>
+                <a href="/category/sets" class="category-card">
+                    <div class="category-icon">👔</div>
+                    <span class="category-name">СЕТЫ</span>
+                </a>
+                <a href="/category/sweaters" class="category-card">
+                    <div class="category-icon">🧥</div>
+                    <span class="category-name">СВИТЕРЫ</span>
+                </a>
+            </div>
+        </section>
+
+        <!-- Products Section -->
+        <section class="stone-products">
+            <div class="products-header">
+                <h2 class="products-title">Новинки</h2>
+                <p class="products-subtitle">Популярные товары этой недели</p>
+            </div>
+            <div class="products-grid" id="productsGrid">
+                <!-- Товар 1 -->
+                <a href="/product/1" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="HOODED BOMBER 01">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">HOODED BOMBER 01</div>
+                        <div class="product-color">Burnt Toast</div>
+                        <div class="product-price">
+                            <span class="price-current">15 990 ₽</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- Товар 2 -->
+                <a href="/product/2" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1556821840-3a63f95609a7?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="HOODED BOMBER 01">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">HOODED BOMBER 01</div>
+                        <div class="product-color">Warm Pesto</div>
+                        <div class="product-price">
+                            <span class="price-current">15 990 ₽</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- Товар 3 (со скидкой) -->
+                <a href="/product/3" class="product-card">
+                    <div class="product-badge sale">-20%</div>
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1591047139829-d91aecb6caea?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="TECH FLEECE">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">TECH FLEECE HOODIE</div>
+                        <div class="product-color">Black</div>
+                        <div class="product-price">
+                            <span class="price-current">12 990 ₽</span>
+                            <span class="price-original">16 240 ₽</span>
+                            <span class="price-discount">-20%</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- Товар 4 -->
+                <a href="/product/4" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1521572163474-6864f9cf17ab?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="CARGO PANTS">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">CARGO PANTS 02</div>
+                        <div class="product-color">Olive</div>
+                        <div class="product-price">
+                            <span class="price-current">11 990 ₽</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- Товар 5 -->
+                <a href="/product/5" class="product-card">
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1539185441755-769473a23570?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="OVERSHIRT">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">OVERSHIRT 03</div>
+                        <div class="product-color">Stone Gray</div>
+                        <div class="product-price">
+                            <span class="price-current">14 990 ₽</span>
+                        </div>
+                    </div>
+                </a>
+                <!-- Товар 6 (со скидкой) -->
+                <a href="/product/6" class="product-card">
+                    <div class="product-badge sale">-30%</div>
+                    <div class="product-image">
+                        <img src="https://images.unsplash.com/photo-1529374255404-311a2a4f1fd9?ixlib=rb-4.0.3&auto=format&fit=crop&w=800&q=80"
+                             alt="SWEATSHIRT">
+                    </div>
+                    <div class="product-info">
+                        <div class="product-name">CROPPED SWEATSHIRT</div>
+                        <div class="product-color">Beige</div>
+                        <div class="product-price">
+                            <span class="price-current">8 990 ₽</span>
+                            <span class="price-original">12 840 ₽</span>
+                            <span class="price-discount">-30%</span>
+                        </div>
+                    </div>
+                </a>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="stone-footer">
+            <p class="footer-text">STONE © 2026</p>
+        </footer>
+    </main>
+
+    <!-- Bottom Navigation - Glass Effect -->
+    <nav class="bottom-nav">
+        <div class="bottom-nav-container">
+            <a href="/" class="nav-item active">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTMgOUwxMiAyTDIxIDlWMjBDMjEgMjAuNTUyMyAyMC41NTIzIDIxIDIwIDIxSDRDMi44OTU0MyAyMSAyIDIwLjEwNDYgMiAxOVY5WiIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTkgMjFWOEM5IDcuNDQ3NzIgOS40NDc3MiA3IDEwIDdIMTRDMTQuNTUyMyA3IDE1IDcuNDQ3NzIgMTUgOFYyMSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPC9zdmc+Cg==" class="nav-icon" alt="Home">
+                <span class="nav-label">Главная</span>
+            </a>
+            <a href="/favorites" class="nav-item">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIwLjQyIDQuNThBNS40IDUuNCAwIDAwMTYgM0EyLjUgMi41IDAgMDAxMy41IDUuNUgxMkE1LjQgNS40IDAgMDA2LjY2IDhsLjg4LjgzbC0zLjc2IDUuMTJhMSAxIDAgMDAuMTYgMS4yTDEwIDlhNiA2IDAgMTA4LjQ3IDIuMDNMNTEgMTkuNzRhMSAxIDAgMDAxLjQxLS4xNWwzLjU5LTQuNDJhMSAxIDAgMDAtLjA3LTEuMThsLTMuNzYtNS4xNC44OC0uODNhNS40IDUuNCAwIDAwLjM1LTcuNjJ6IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K" class="nav-icon" alt="Favorites">
+                <span class="nav-label">Избранное</span>
+            </a>
+            <a href="/cart" class="nav-item">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTkgMjJDMTAuMTA0NiAyMiAxMSAyMS4xMDQ2IDExIDIwQzExIDE4Ljg5NTQgMTAuMTA0NiAxOCA5IDE4QzcuODk1NDMgMTggNyAxOC44OTU0IDcgMjBDNyAyMS4xMDQ2IDcuODk1NDMgMjIgOSAyMloiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+CjxwYXRoIGQ9Ik0yMCAyMkMyMS4xMDQ2IDIyIDIyIDIxLjEwNDYgMjIgMjBDMjIgMTguODk1NCAyMS4xMDQ2IDE4IDIwIDE4QzE4Ljg5NTQgMTggMTggMTguODk1NCAxOCAyMEMxOCAyMS4xMDQ2IDE4Ljg5NTQgMjIgMjAgMjJaIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNNSA0SDdMNyAxN0gxOSIgc3Ryb2tlPSJibGFjayIgc3Ryb2tlLXdpZHRoPSIyIiBzdHJva2UtbGluZWNhcD0icm91bmQiIHN0cm9rZS1saW5lam9pbj0icm91bmQiLz4KPHBhdGggZD0iTTcgMTFMOC41IDhIOS41TDEwLjUgMTFIMTJMOC41IDRINy41IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8L3N2Zz4K" class="nav-icon" alt="Cart">
+                <span class="nav-label">Корзина</span>
+            </a>
+            <a href="/profile" class="nav-item">
+                <img src="data:image/svg+xml;base64,PHN2ZyB3aWR0aD0iMjQiIGhlaWdodD0iMjQiIHZpZXdCb3g9IjAgMCAyNCAyNCIgZmlsbD0ibm9uZSIgeG1sbnM9Imh0dHA6Ly93d3cudzMub3JnLzIwMDAvc3ZnIj4KPHBhdGggZD0iTTIwIDIxVjE5QzIwIDE3LjEzOSAxOC44NjEgMTUuNjA0MiAxNyAxNS4xODQ5IiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTUgMTAuMTg0OUMxMy4xMzkgOS43NjU2NSAxMiA4LjIzOTE1IDEyIDYuMzg0OTVDMTIgNC41MzA3NSAxMy4xMzkgMyAxNSAzQzE2Ljg2MSAzIDE4IDQuNTMwNzUgMTggNi4zODQ5NUMxOCA4LjIzOTE1IDE2Ljg2MSA5Ljc2NTY1IDE1IDEwLjE4NDlaIiBzdHJva2U9ImJsYWNrIiBzdHJva2Utd2lkdGg9IjIiIHN0cm9rZS1saW5lY2FwPSJyb3VuZCIgc3Ryb2tlLWxpbmVqb2luPSJyb3VuZCIvPgo8cGF0aCBkPSJNMTIgMjFIOEM2Ljg5NTQzIDIxIDYgMjAuMTA0NiA2IDE5VjE1Ljg0NzVDNiAxMi45ODU3IDguMjM4NTggMTAuNSAxMSAxMEMxMC4wNTIzIDEwIDkuMjA5NDMgOS41NjUyMiA4LjU4NTc5IDguODQxODQiIHN0cm9rZT0iYmxhY2siIHN0cm9rZS13aWR0aD0iMiIgc3Ryb2tlLWxpbmVjYXA9InJvdW5kIiBzdHJva2UtbGluZWpvaW49InJvdW5kIi8+Cjwvc3ZnPgo=" class="nav-icon" alt="Profile">
+                <span class="nav-label">Профиль</span>
+            </a>
+        </div>
+    </nav>
+
+    <script>
+        // Telegram WebApp
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+            tg.ready();
+            console.log('Telegram WebApp initialized');
+        }
+
+        // Carousel functionality with swipe
+        class SwipeCarousel {
+            constructor() {
+                this.carousel = document.getElementById('carousel');
+                this.track = document.getElementById('carouselTrack');
+                this.dotsContainer = document.getElementById('carouselDots');
+                this.slides = document.querySelectorAll('.carousel-slide');
+                this.currentSlide = 0;
+                this.isDragging = false;
+                this.startPos = 0;
+                this.currentTranslate = 0;
+                this.prevTranslate = 0;
+                this.animationID = 0;
+                this.autoSlideInterval = null;
+
+                this.init();
+            }
+
+            init() {
+                this.createDots();
+                this.updateCarousel();
+                this.startAutoSlide();
+                this.addEventListeners();
+            }
+
+            createDots() {
+                this.dotsContainer.innerHTML = '';
+                this.slides.forEach((_, index) => {
+                    const dot = document.createElement('button');
+                    dot.className = 'carousel-dot';
+                    if (index === this.currentSlide) dot.classList.add('active');
+                    dot.addEventListener('click', () => this.goToSlide(index));
+                    this.dotsContainer.appendChild(dot);
+                });
+            }
+
+            updateCarousel() {
+                this.slides.forEach((slide, index) => {
+                    slide.classList.toggle('active', index === this.currentSlide);
+                });
+
+                document.querySelectorAll('.carousel-dot').forEach((dot, index) => {
+                    dot.classList.toggle('active', index === this.currentSlide);
+                });
+
+                this.track.style.transform = `translateX(-${this.currentSlide * 100}%)`;
+            }
+
+            nextSlide() {
+                this.currentSlide = (this.currentSlide + 1) % this.slides.length;
+                this.updateCarousel();
+            }
+
+            prevSlide() {
+                this.currentSlide = (this.currentSlide - 1 + this.slides.length) % this.slides.length;
+                this.updateCarousel();
+            }
+
+            goToSlide(index) {
+                if (index >= 0 && index < this.slides.length) {
+                    this.currentSlide = index;
+                    this.updateCarousel();
+                }
+            }
+
+            startAutoSlide() {
+                this.autoSlideInterval = setInterval(() => this.nextSlide(), 5000);
+            }
+
+            stopAutoSlide() {
+                if (this.autoSlideInterval) {
+                    clearInterval(this.autoSlideInterval);
+                    this.autoSlideInterval = null;
+                }
+            }
+
+            addEventListeners() {
+                // Touch events
+                this.carousel.addEventListener('touchstart', this.touchStart.bind(this));
+                this.carousel.addEventListener('touchmove', this.touchMove.bind(this));
+                this.carousel.addEventListener('touchend', this.touchEnd.bind(this));
+
+                // Mouse events for desktop
+                this.carousel.addEventListener('mousedown', this.touchStart.bind(this));
+                this.carousel.addEventListener('mousemove', this.touchMove.bind(this));
+                this.carousel.addEventListener('mouseup', this.touchEnd.bind(this));
+                this.carousel.addEventListener('mouseleave', this.touchEnd.bind(this));
+
+                // Prevent image drag
+                this.carousel.querySelectorAll('img').forEach(img => {
+                    img.addEventListener('dragstart', (e) => e.preventDefault());
+                });
+            }
+
+            touchStart(event) {
+                if (event.type === 'mousedown') {
+                    event.preventDefault();
+                }
+
+                this.isDragging = true;
+                this.startPos = this.getPositionX(event);
+                this.prevTranslate = -this.currentSlide * this.carousel.offsetWidth;
+                this.stopAutoSlide();
+
+                this.animationID = requestAnimationFrame(this.animation.bind(this));
+                this.carousel.style.cursor = 'grabbing';
+            }
+
+            touchMove(event) {
+                if (!this.isDragging) return;
+                if (event.type === 'mousemove') {
+                    event.preventDefault();
+                }
+
+                const currentPosition = this.getPositionX(event);
+                const diff = currentPosition - this.startPos;
+                this.currentTranslate = this.prevTranslate + diff;
+            }
+
+            touchEnd() {
+                if (!this.isDragging) return;
+
+                this.isDragging = false;
+                cancelAnimationFrame(this.animationID);
+                this.carousel.style.cursor = 'grab';
+
+                const movedBy = this.currentTranslate - this.prevTranslate;
+                const slideWidth = this.carousel.offsetWidth;
+
+                if (Math.abs(movedBy) > slideWidth * 0.15) {
+                    if (movedBy > 0) {
+                        this.prevSlide();
+                    } else {
+                        this.nextSlide();
+                    }
+                }
+
+                this.currentTranslate = -this.currentSlide * slideWidth;
+                this.updateCarousel();
+                this.startAutoSlide();
+            }
+
+            getPositionX(event) {
+                return event.type.includes('mouse') ? event.pageX : event.touches[0].clientX;
+            }
+
+            animation() {
+                if (!this.isDragging) return;
+
+                const slideWidth = this.carousel.offsetWidth;
+                const maxTranslate = -slideWidth * (this.slides.length - 1);
+                const minTranslate = 0;
+
+                // Ограничиваем движение
+                this.currentTranslate = Math.max(maxTranslate, Math.min(minTranslate, this.currentTranslate));
+
+                this.track.style.transform = `translateX(${this.currentTranslate}px)`;
+                this.animationID = requestAnimationFrame(this.animation.bind(this));
+            }
+        }
+
+        // Инициализация при загрузке
+        document.addEventListener('DOMContentLoaded', () => {
+            // Инициализируем карусель
+            const carousel = new SwipeCarousel();
+
+            // Duplicate marquee content for seamless loop
+            const marqueeTrack = document.querySelector('.marquee-track');
+            if (marqueeTrack) {
+                const items = marqueeTrack.innerHTML;
+                marqueeTrack.innerHTML = items + items + items;
+            }
+
+            // Добавляем плавное появление товаров
+            const productCards = document.querySelectorAll('.product-card');
+            productCards.forEach((card, index) => {
+                card.style.animation = `slideInUp 0.6s ease ${index * 0.1}s forwards`;
+                card.style.opacity = '0';
+            });
+
+            // Search functionality
+            document.getElementById('searchBtn').addEventListener('click', () => {
+                const searchHTML = `
+                    <div style="position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); z-index: 2000; display: flex; align-items: center; justify-content: center; backdrop-filter: blur(20px);">
+                        <div style="width: 90%; max-width: 600px; text-align: center;">
+                            <h2 style="font-size: 32px; margin-bottom: 24px; color: white; font-weight: 900; letter-spacing: 0.1em;">ПОИСК</h2>
+                            <input type="text" placeholder="ВВЕДИТЕ ЗАПРОС..."
+                                   style="width: 100%; padding: 16px; background: transparent; border: none; border-bottom: 1px solid rgba(255,255,255,0.3); color: white; font-size: 18px; text-align: center; outline: none; letter-spacing: 0.05em;">
+                            <div style="margin-top: 48px; color: white; font-size: 12px; opacity: 0.7; letter-spacing: 0.1em;">
+                                Нажмите ESC для закрытия
+                            </div>
+                        </div>
+                    </div>
+                `;
+
+                const searchOverlay = document.createElement('div');
+                searchOverlay.innerHTML = searchHTML;
+                document.body.appendChild(searchOverlay);
+
+                const input = searchOverlay.querySelector('input');
+                input.focus();
+
+                function closeSearch() {
+                    searchOverlay.remove();
+                    document.removeEventListener('keydown', handleKeydown);
+                }
+
+                function handleKeydown(e) {
+                    if (e.key === 'Escape') closeSearch();
+                }
+
+                document.addEventListener('keydown', handleKeydown);
+                searchOverlay.addEventListener('click', (e) => {
+                    if (e.target === searchOverlay) closeSearch();
+                });
+            });
+
+            // Add to cart functionality
+            function addToCart(productId, productName) {
+                console.log(`Added ${productName} to cart`);
+
+                // Update cart count
+                const cartCount = document.querySelector('.cart-count');
+                if (cartCount) {
+                    let count = parseInt(cartCount.textContent) || 0;
+                    count++;
+                    cartCount.textContent = count;
+                    cartCount.style.display = 'flex';
+                }
+
+                // Show notification
+                showNotification(`Добавлено: ${productName}`);
+            }
+
+            function showNotification(message) {
+                const notification = document.createElement('div');
+                notification.style.cssText = `
+                    position: fixed;
+                    bottom: 70px;
+                    right: 20px;
+                    background: rgba(0, 0, 0, 0.9);
+                    color: var(--white);
+                    padding: 10px 16px;
+                    border-radius: 10px;
+                    font-size: 13px;
+                    font-weight: 400;
+                    z-index: 10000;
+                    animation: slideInUp 0.3s ease;
+                    max-width: 280px;
+                    backdrop-filter: blur(10px);
+                    border: 1px solid rgba(255,255,255,0.1);
+                `;
+                notification.textContent = message;
+                document.body.appendChild(notification);
+
+                setTimeout(() => {
+                    notification.style.animation = 'slideInUp 0.3s ease reverse';
+                    setTimeout(() => notification.remove(), 300);
+                }, 2500);
+            }
+
+            // Make products clickable to add to cart (for demo)
+            productCards.forEach(card => {
+                card.addEventListener('click', (e) => {
+                    if (!e.target.closest('a')) {
+                        e.preventDefault();
+                        const productName = card.querySelector('.product-name').textContent;
+                        addToCart(null, productName);
+                    }
+                });
+            });
+        });
+    </script>
+</body>
+</html>

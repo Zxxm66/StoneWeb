@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE | Premium Sneakers</title>
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            background: #000;
+            color: #fff;
+            font-family: -apple-system, BlinkMacSystemFont, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .loading {
+            text-align: center;
+            padding: 48px;
+        }
+        .stone-logo {
+            font-size: 72px;
+            font-weight: 900;
+            letter-spacing: 0.1em;
+            margin-bottom: 16px;
+        }
+        .subtitle {
+            opacity: 0.7;
+            font-size: 14px;
+            letter-spacing: 0.2em;
+            margin-bottom: 24px;
+        }
+        .loader {
+            width: 40px;
+            height: 40px;
+            border: 2px solid rgba(255,255,255,0.2);
+            border-top-color: #fff;
+            border-radius: 50%;
+            margin: 0 auto;
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="loading">
+        <div class="stone-logo">STONE</div>
+        <div class="subtitle">PREMIUM SNEAKERS</div>
+        <div class="loader"></div>
+    </div>
+    <script>
+        setTimeout(() => {
+            window.location.href = '/';
+        }, 1000);
+    </script>
+</body>
+</html>
