@@ -1,0 +1,30 @@
+0191: def format_product_row(row):
+0192:     """Normalize product dict with formatted price fields."""
+0193:     product = dict(row)
+0194:     product['image_url'] = normalize_image(product.get('image_url'))
+0195:     price = float(product.get('price', 0) or 0)
+0196:     product['price_formatted'] = f"{price:,.0f} ₽".replace(',', ' ')
+0197:     if product.get('compare_at_price'):
+0198:         compare_price = float(product['compare_at_price'] or 0)
+0199:         product['compare_price_formatted'] = f"{compare_price:,.0f} ₽".replace(',', ' ')
+0200:         if compare_price > price:
+0201:             discount = ((compare_price - price) / compare_price) * 100
+0202:             product['discount_percent'] = int(discount)
+0203:     return product
+0204: 
+0205: 
+0206: def ensure_columns(conn, table_name, columns):
+0207:     """Add missing columns to a table if they do not exist."""
+0208:     cur = conn.cursor()
+0209:     cur.execute(f"PRAGMA table_info({table_name})")
+0210:     existing = {row[1] for row in cur.fetchall()}
+0211:     for name, ddl in columns.items():
+0212:         if name not in existing:
+0213:             cur.execute(f"ALTER TABLE {table_name} ADD COLUMN {name} {ddl}")
+0214:             logger.info(f"Added column {name} to {table_name}")
+0215: 
+0216: 
+0217: def slugify(value):
+0218:     """Make a simple URL slug from a string."""
+0219:     if not value:
+0220:         return None

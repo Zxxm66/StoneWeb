@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE — Главная</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <style>
+        :root {
+            --fg: #111;
+            --muted: #666;
+            --border: #e5e5e5;
+        }
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        body {
+            font-family: 'Space Grotesk', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: #fff;
+            color: var(--fg);
+            line-height: 1.4;
+            letter-spacing: -0.01em;
+        }
+        a { color: inherit; text-decoration: none; }
+
+        /* Top nav */
+        .top-nav {
+            border-bottom: 1px solid var(--border);
+            padding: 12px 24px;
+            display: grid;
+            grid-template-columns: 1fr auto 1fr;
+            align-items: center;
+            gap: 12px;
+        }
+        .nav-left, .nav-right {
+            display: flex;
+            gap: 16px;
+            font-size: 12px;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+        }
+        .nav-left a, .nav-right a { white-space: nowrap; }
+        .brand {
+            text-align: center;
+            font-weight: 700;
+            letter-spacing: 0.22em;
+        }
+        .menu-toggle {
+            cursor: pointer;
+            display: flex;
+            flex-direction: column;
+            gap: 3px;
+            padding: 4px;
+        }
+        .menu-toggle span {
+            width: 18px;
+            height: 2px;
+            background: var(--fg);
+            transition: all 0.3s ease;
+        }
+        .categories-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            -webkit-backdrop-filter: blur(10px);
+            backdrop-filter: blur(10px);
+            z-index: 9999;
+            display: none;
+            align-items: center;
+            justify-content: center;
+        }
+        .categories-overlay.active {
+            display: flex;
+        }
+        .categories-menu {
+            background: rgba(0, 0, 0, 0.85);
+            -webkit-backdrop-filter: blur(20px);
+            backdrop-filter: blur(20px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            min-width: 300px;
+            max-width: 90%;
+            max-height: 80vh;
+            overflow-y: auto;
+            padding: 40px 0;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+        }
+        .categories-menu a {
+            display: block;
+            padding: 16px 40px;
+            color: #fff;
+            text-transform: uppercase;
+            font-size: 14px;
+            letter-spacing: 0.1em;
+            text-decoration: none;
+            transition: background 0.3s ease;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+        .categories-menu a:last-child {
+            border-bottom: none;
+        }
+        .categories-menu a:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+        .nav-left {
+            position: relative;
+        }
+
+        /* Hero carousel */
+        .hero {
+            position: relative;
+            width: 100%;
+            height: 78vh;
+            min-height: 520px;
+            overflow: hidden;
+            border-bottom: 1px solid var(--border);
+        }
+        .hero-track {
+            display: flex;
+            height: 100%;
+            transition: transform 0.6s ease;
+        }
+        .hero-slide {
+            flex: 0 0 100%;
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: #f7f7f7;
+        }
+        .hero-slide img, .hero-slide video {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+        }
+        .hero-caption {
+            position: absolute;
+            bottom: 32px;
+            left: 50%;
+            transform: translateX(-50%);
+            display: flex;
+            gap: 12px;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.9);
+            border: 1px solid var(--border);
+            text-transform: uppercase;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+        }
+        .hero-dots {
+            position: absolute;
+            bottom: 16px;
+            right: 24px;
+            display: flex;
+            gap: 8px;
+        }
+        .dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: #ccc;
+            border: none;
+            cursor: pointer;
+        }
+        .dot.active { background: #111; }
+
+        /* Section headings */
+        .section {
+            padding: 36px 24px 12px;
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            border-bottom: 1px solid var(--border);
+        }
+        .section h3 {
+            font-size: 16px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+        .section a {
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+        }
+
+        /* Product grid */
+        .grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    border-top: 1px solid #000000;
+    border-left: 1px solid #000000;
+}
+
+.card {
+    border-right: 1px solid #000000;
+    border-bottom: 1px solid #000000;
+    border-left: 1px solid #000000;
+    padding: 24px 18px 18px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+        .card:nth-child(4n) { border-right: none; }
+        .card-media {
+            position: relative;
+            width: 100%;
+            aspect-ratio: 3/4;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+        .card-media img {
+            max-height: 100%;
+            max-width: 100%;
+            object-fit: contain;
+        }
+        .card-title {
+            font-size: 13px;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .card-meta {
+            font-size: 12px;
+            color: var(--muted);
+            text-transform: uppercase;
+        }
+        .card-price {
+            font-size: 13px;
+            font-weight: 600;
+        }
+
+        /* Footer */
+        footer {
+            padding: 20px 24px 40px;
+            font-size: 12px;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            color: var(--muted);
+        }
+
+        @media (max-width: 900px) {
+            .hero { height: 60vh; }
+            .card { border-right: 1px solid var(--border); }
+            .card:nth-child(4n) { border-right: 1px solid var(--border); }
+            .grid { grid-template-columns: repeat(auto-fill, minmax(180px, 1fr)); }
+        }
+/* ===== Categories fullscreen menu ===== */
+
+.categories-overlay {
+    position: fixed;
+    inset: 0;
+    background: #fff;
+    z-index: 9999;
+    display: none;
+}
+
+.categories-overlay.active {
+    display: block;
+}
+
+.categories-panel {
+    width: 100%;
+    height: 100%;
+    position: relative;
+}
+
+.categories-close {
+    position: absolute;
+    top: 20px;
+    right: 24px;
+    font-size: 20px;
+    background: none;
+    border: none;
+    cursor: pointer;
+}
+
+.categories-layout {
+    display: grid;
+    grid-template-columns: 360px 1fr;
+    height: 100%;
+}
+
+/* LEFT COLUMN */
+.categories-left {
+    padding: 120px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 18px;
+}
+
+.cat-main {
+    font-size: 20px;
+    line-height: 1.3;
+}
+
+.cat-main.active {
+    text-decoration: underline;
+}
+
+/* RIGHT COLUMN */
+.categories-right {
+    border-left: 1px solid var(--border);
+    padding: 120px 48px;
+    display: flex;
+    flex-direction: column;
+    gap: 48px;
+}
+
+.categories-sub {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+}
+
+.categories-sub a {
+    font-size: 14px;
+}
+
+/* PREVIEW */
+.categories-preview {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 32px;
+}
+
+.preview-item {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+    text-align: center;
+}
+
+.preview-item img {
+    width: 100%;
+    aspect-ratio: 3 / 4;
+    object-fit: contain;
+    border: 1px solid var(--border);
+}
+
+.preview-item span {
+    font-size: 12px;
+}
+    </style>
+</head>
+<body>
+    <header class="top-nav">
+        <div class="nav-left">
+            <div class="menu-toggle" id="menuToggle">
+                <span></span>
+                <span></span>
+                <span></span>
+            </div>
+            <a href="/catalog">Gifts</a>
+            <a href="/catalog">Explore</a>
+        </div>
+        <div class="brand">STONE</div>
+        <div class="nav-right">
+            <a href="/catalog">Filter</a>
+            <a href="/cart">Bag</a>
+        </div>
+    </header>
+
+    <section class="hero" id="hero">
+        <div class="hero-track" id="heroTrack">
+            {% for item in carousel_items %}
+            <div class="hero-slide">
+                {% set src = item.image_url %}
+                {% if src and (src.endswith('.mp4') or src.endswith('.webm')) %}
+                    <video src="{{ src }}" autoplay muted loop playsinline></video>
+                {% else %}
+                    <img src="{{ src or '/static/images/placeholder.jpg' }}" alt="{{ item.title }}">
+                {% endif %}
+                <div class="hero-caption">
+                    <span>{{ item.title or 'Stone' }}</span>
+                    {% if item.subtitle %}<span>{{ item.subtitle }}</span>{% endif %}
+                </div>
+            </div>
+            {% endfor %}
+            {% if carousel_items|length == 0 %}
+                <div class="hero-slide">
+                    <img src="/static/images/placeholder.jpg" alt="STONE">
+                    <div class="hero-caption"><span>STONE</span><span>Telegram Web</span></div>
+                </div>
+            {% endif %}
+        </div>
+        <div class="hero-dots" id="heroDots"></div>
+    </section>
+
+    <div class="section">
+        <h3>Featured</h3>
+        <a href="/catalog">Смотреть все</a>
+    </div>
+    <div class="grid">
+        {% for product in featured_products %}
+        <a class="card" href="/product/{{ product.id }}">
+            <div class="card-media">
+                <img src="{{ product.image_url or '/static/images/placeholder.jpg' }}" alt="{{ product.name }}">
+            </div>
+            <div class="card-title">{{ product.name }}</div>
+            <div class="card-meta">{{ product.brand or 'Stone' }}{% if product.color %} · {{ product.color }}{% endif %}</div>
+            <div class="card-price">{{ product.price_formatted }}</div>
+        </a>
+        {% else %}
+            <div class="card" style="border-right: none;">Нет товаров</div>
+        {% endfor %}
+    </div>
+
+    <footer>STONE · {{ current_year }}</footer>
+
+<!-- Categories overlay -->
+<div class="categories-overlay" id="categoriesOverlay">
+    <div class="categories-panel">
+
+        <button class="categories-close" id="categoriesClose">✕</button>
+
+        <div class="categories-layout">
+
+            <!-- LEFT -->
+            <nav class="categories-left">
+                <a href="/catalog" class="cat-main">Discover</a>
+                <a href="/catalog?category=ready-to-wear" class="cat-main">Ready-To-Wear</a>
+                <a href="/catalog?category=shoes" class="cat-main">Shoes</a>
+                <a href="/catalog?category=bags" class="cat-main">Bags</a>
+                <a href="/catalog?category=small-leather-goods" class="cat-main active">
+                    Small Leather Goods
+                </a>
+                <a href="/catalog?category=accessories" class="cat-main">Accessories</a>
+            </nav>
+
+            <!-- RIGHT -->
+            <div class="categories-right">
+                <div class="categories-sub">
+                    <a href="/catalog?category=small-leather-goods">View All</a>
+                    <a href="/catalog?category=wallets">Wallets</a>
+                    <a href="/catalog?category=card-holders">Card Holders</a>
+                    <a href="/catalog?category=clutches">Clutches & Pouches</a>
+                </div>
+
+                <div class="categories-preview">
+                    <div class="preview-item">
+                        <img src="/static/images/placeholder.jpg" alt="">
+                        <span>Cash</span>
+                    </div>
+                    <div class="preview-item">
+                        <img src="/static/images/placeholder.jpg" alt="">
+                        <span>Monaco</span>
+                    </div>
+                    <div class="preview-item">
+                        <img src="/static/images/placeholder.jpg" alt="">
+                        <span>Rodeo</span>
+                    </div>
+                    <div class="preview-item">
+                        <img src="/static/images/placeholder.jpg" alt="">
+                        <span>Passport</span>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</div>
+
+
+
+      
+
+    <script>
+        const tg = window.Telegram?.WebApp;
+        if (tg) { tg.ready(); tg.expand(); }
+
+        // Categories menu toggle
+
+const menuToggle = document.getElementById('menuToggle');
+const overlay = document.getElementById('categoriesOverlay');
+const closeBtn = document.getElementById('categoriesClose');
+
+menuToggle.addEventListener('click', () => {
+    overlay.classList.add('active');
+    document.body.style.overflow = 'hidden';
+});
+
+closeBtn.addEventListener('click', () => {
+    overlay.classList.remove('active');
+    document.body.style.overflow = '';
+});
+
+        const slides = Array.from(document.querySelectorAll('.hero-slide'));
+        const track = document.getElementById('heroTrack');
+        const dots = document.getElementById('heroDots');
+        let index = 0;
+        if (slides.length > 1) {
+            slides.forEach((_, i) => {
+                const b = document.createElement('button');
+                b.className = 'dot' + (i === 0 ? ' active' : '');
+                b.addEventListener('click', () => go(i));
+                dots.appendChild(b);
+            });
+
+            function go(i) {
+                index = i;
+                track.style.transform = `translateX(-${i * 100}%)`;
+                dots.querySelectorAll('.dot').forEach((d, di) => d.classList.toggle('active', di === i));
+            }
+            setInterval(() => go((index + 1) % slides.length), 6000);
+        }
+    </script>
+</body>
+</html>

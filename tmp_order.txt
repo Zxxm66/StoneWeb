@@ -1,0 +1,90 @@
+0101: env = aiohttp_jinja2.setup(
+0102:     app,
+0103:     loader=jinja2.FileSystemLoader(TEMPLATES_DIR)
+0104: )
+0105: 
+0106: 
+0107: # ============== БАЗА ДАННЫХ ==============
+0108: 
+0109: def get_db_connection():
+0110:     """Создает соединение с БД"""
+0111:     conn = sqlite3.connect(DB_PATH)
+0112:     conn.row_factory = sqlite3.Row
+0113:     return conn
+0114: 
+0115: 
+0116: def ensure_columns(conn, table_name, columns):
+0117:     """Add missing columns to a table if they do not exist."""
+0118:     cur = conn.cursor()
+0119:     cur.execute(f"PRAGMA table_info({table_name})")
+0120:     existing = {row[1] for row in cur.fetchall()}
+0121:     for name, ddl in columns.items():
+0122:         if name not in existing:
+0123:             cur.execute(f"ALTER TABLE {table_name} ADD COLUMN {name} {ddl}")
+0124:             logger.info(f"Added column {name} to {table_name}")
+0125: 
+0126: 
+0127: def slugify(value):
+0128:     """Make a simple URL slug from a string."""
+0129:     if not value:
+0130:         return None
+0131:     slug = re.sub(r'[^a-z0-9]+', '-', value.lower()).strip('-')
+0132:     return slug or None
+0133: 
+0134: 
+0135: def migrate_schema(conn):
+0136:     """Ensure legacy databases have the columns expected by current queries."""
+0137:     ensure_columns(conn, 'products', {
+0138:         'slug': 'TEXT',
+0139:         'description': 'TEXT',
+0140:         'compare_at_price': 'DECIMAL(10, 2)',
+0141:         'gallery': 'TEXT',
+0142:         'color': 'VARCHAR(50)',
+0143:         'size': 'VARCHAR(50)',
+0144:         'material': 'VARCHAR(100)',
+0145:         'is_featured': 'BOOLEAN DEFAULT FALSE',
+0146:         'views': 'INTEGER DEFAULT 0',
+0147:         'is_active': 'BOOLEAN DEFAULT TRUE',
+0148:         'created_at': 'TIMESTAMP',
+0149:         'updated_at': 'TIMESTAMP'
+0150:     })
+0151: 
+0152:     ensure_columns(conn, 'categories', {
+0153:         'slug': 'VARCHAR(100)',
+0154:         'sort_order': 'INTEGER DEFAULT 0',
+0155:         'created_at': 'TIMESTAMP'
+0156:     })
+0157: 
+0158:     cur = conn.cursor()
+0159:     cur.execute("UPDATE products SET is_active = 1 WHERE is_active IS NULL")
+0160:     cur.execute("UPDATE products SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+0161:     cur.execute("UPDATE products SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL")
+0162:     cur.execute("SELECT id, name FROM products WHERE slug IS NULL OR slug = ''")
+0163:     for pid, name in cur.fetchall():
+0164:         slug = slugify(name) or f\"product-{pid}\"
+0165:         cur.execute("UPDATE products SET slug = ? WHERE id = ?", (slug, pid))
+0166: 
+0167:     cur.execute("UPDATE categories SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+0168:     cur.execute("SELECT id, name FROM categories WHERE slug IS NULL OR slug = ''")
+0169:     for cid, name in cur.fetchall():
+0170:         slug = slugify(name) or f\"category-{cid}\"
+0171:         cur.execute("UPDATE categories SET slug = ? WHERE id = ?", (slug, cid))
+0172: 
+0173:     conn.commit()
+0174: 
+0175: 
+0176: def normalize_image(raw):
+0177:     """Return a single usable image URL from legacy or list storage."""
+0178:     placeholder = '/static/images/placeholder.jpg'
+0179:     if not raw or raw == 'None':
+0180:         return placeholder
+0181:     if isinstance(raw, str) and raw.strip().startswith('['):
+0182:         try:
+0183:             data = json.loads(raw)
+0184:             if isinstance(data, list) and data:
+0185:                 return data[0]
+0186:         except Exception:
+0187:             return placeholder
+0188:     return raw
+0189: 
+0190: 

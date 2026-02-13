@@ -1,0 +1,40 @@
+0191: def format_product_row(row):
+0192:     """Normalize product dict with formatted price fields."""
+0193:     product = dict(row)
+0194:     product['image_url'] = normalize_image(product.get('image_url'))
+0195:     price = float(product.get('price', 0) or 0)
+0196:     product['price_formatted'] = f"{price:,.0f} RUB".replace(',', ' ')
+0197:     if product.get('compare_at_price'):
+0198:         compare_price = float(product['compare_at_price'] or 0)
+0199:         product['compare_price_formatted'] = f"{compare_price:,.0f} RUB".replace(',', ' ')
+0200:         if compare_price > price:
+0201:             discount = ((compare_price - price) / compare_price) * 100
+0202:             product['discount_percent'] = int(discount)
+0203:     return product
+0204: 
+0205: 
+0206: def init_store_db():
+0207:     """Инициализация БД для магазина"""
+0208:     conn = sqlite3.connect(DB_PATH)
+0209:     cursor = conn.cursor()
+0210: 
+0211:     try:
+0212:         # Таблица веб-виджетов
+0213:         cursor.execute("""
+0214:             CREATE TABLE IF NOT EXISTS web_widgets (
+0215:                 id INTEGER PRIMARY KEY AUTOINCREMENT,
+0216:                 widget_type VARCHAR(50) NOT NULL,
+0217:                 title VARCHAR(255),
+0218:                 content TEXT,
+0219:                 config TEXT,
+0220:                 is_active BOOLEAN DEFAULT TRUE,
+0221:                 position INTEGER DEFAULT 0,
+0222:                 sort_order INTEGER DEFAULT 0,
+0223:                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+0224:                 updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+0225:             )
+0226:         """)
+0227: 
+0228:         # Таблица категорий
+0229:         cursor.execute("""
+0230:             CREATE TABLE IF NOT EXISTS categories (

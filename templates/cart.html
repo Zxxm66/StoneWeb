@@ -1,10 +1,291 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="ru">
 <head>
     <meta charset="UTF-8">
-    <title>Title</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Корзина · STONE</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --border:#e5e5e5; --fg:#111; --muted:#666; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;background:#fff;color:var(--fg);line-height:1.4;letter-spacing:-0.01em;padding:16px;}
+        header{display:flex;justify-content:space-between;align-items:center;margin-bottom:16px;}
+        .brand{font-weight:700;letter-spacing:0.22em;text-transform:uppercase;cursor:pointer;}
+        .bag{display:inline-flex;align-items:center;gap:6px;cursor:pointer;}
+        .bag-count{min-width:18px;padding:2px 6px;border-radius:999px;background:#111;color:#fff;font-size:11px;line-height:1;text-align:center;}
+        .list{border-top:1px solid var(--border);}
+        .item{display:grid;grid-template-columns:90px 1fr auto auto;gap:12px;padding:14px 0;border-bottom:1px solid var(--border);align-items:center;}
+        .thumb{width:90px;height:110px;border:1px solid var(--border);display:flex;align-items:center;justify-content:center;}
+        .thumb img{max-width:100%;max-height:100%;object-fit:contain;}
+        .name{font-size:14px;font-weight:600;}
+        .meta{color:var(--muted);font-size:12px;margin:4px 0;}
+        .sizes{display:flex;gap:6px;flex-wrap:wrap;font-size:12px;}
+        .chip{padding:4px 8px;border:1px solid var(--border);border-radius:8px;}
+        .price{font-weight:600;}
+        .remove{
+            border:1px solid #000;
+            background:#fff;
+            color:#111;
+            padding:10px 14px;
+            border-radius:6px;
+            cursor:pointer;
+            transition:transform .18s ease, background .18s ease, color .18s ease;
+            font-weight:600;
+            font-size:16px;
+            line-height:1;
+            display:flex;
+            align-items:center;
+            justify-content:center;
+            min-width:44px;
+            height:44px;
+        }
+        .remove:hover{
+            background:#f5f5f5;
+        }
+        .remove:active{
+            background:#111;
+            color:#fff;
+            border-color:#111;
+            transform:translateY(1px);
+        }
+        .summary{display:flex;justify-content:space-between;align-items:center;padding:14px 0;}
+        .btn{width:100%;padding:14px;border:none;background:#111;color:#fff;text-transform:uppercase;letter-spacing:0.1em;font-size:12px;border-radius:8px;cursor:pointer;}
+        .form{border-top:1px solid var(--border); padding-top:12px; display:grid; gap:10px;}
+        .form label{font-size:12px; text-transform:uppercase; letter-spacing:0.08em;}
+        .form input, .form select{width:100%; padding:12px; border:1px solid var(--border); border-radius:8px;}
+        .radios{display:flex; gap:10px; flex-wrap:wrap;}
+        .radio{padding:8px 10px; border:1px solid var(--border); border-radius:8px; cursor:pointer;}
+        .radio input{margin-right:6px;}
+        .delivery-options{display:flex; flex-wrap:wrap; gap:10px; margin-bottom:12px;}
+        .delivery-btn{
+            flex: 1;
+            min-width: 120px;
+            padding:12px 14px;
+            border:1px solid #000;
+            background:#fff;
+            color:#111;
+            text-transform:uppercase;
+            font-size:11px;
+            letter-spacing:0.08em;
+            border-radius:6px;
+            cursor:pointer;
+            transition:transform .18s ease, background .18s ease, color .18s ease;
+            font-weight:600;
+        }
+        .delivery-btn:hover{
+            background:#f5f5f5;
+        }
+        .delivery-btn.active{
+            background:#111;
+            color:#fff;
+            border-color:#111;
+            transform:translateY(-1px);
+        }
+        .delivery-btn:active{
+            transform:translateY(1px);
+        }
+        @media(max-width:768px){
+            body{padding:12px;}
+            header{margin-bottom:12px;}
+            .brand{font-size:14px;}
+            h1{font-size:16px;margin-bottom:8px;}
+            .item{grid-template-columns:70px 1fr auto auto;gap:10px;padding:12px 0;}
+            .thumb{width:70px;height:85px;}
+            .name{font-size:13px;}
+            .meta{font-size:11px;}
+            .price{font-size:13px;}
+            .remove{padding:10px 12px;font-size:13px;}
+            .summary{padding:12px 0;font-size:13px;}
+            .delivery-btn{padding:10px 12px;font-size:10px;}
+            .form label{font-size:11px;}
+            .form input, .form select{padding:10px;font-size:12px;}
+            .radio{padding:6px 8px;font-size:11px;}
+            .btn{padding:12px;font-size:11px;}
+            footer{font-size:10px;}
+        }
+        @media(max-width:640px){
+            body{padding:10px;}
+            header{gap:6px;margin-bottom:12px;}
+            .brand{font-size:12px;}
+            .bag{font-size:11px;}
+            .bag-count{min-width:16px;padding:1px 4px;font-size:9px;}
+            h1{font-size:14px;margin-bottom:6px;}
+            .item{grid-template-columns:50px 1fr auto auto;gap:8px;padding:10px 0;align-items:center;}
+            .thumb{width:50px;height:65px;}
+            .name{font-size:12px;}
+            .meta{font-size:10px;}
+            .price{font-size:12px;}
+            .remove{padding:10px 12px;font-size:14px;min-width:44px;height:44px;}
+            .summary{padding:10px 0;font-size:12px;}
+            .delivery-options{gap:6px;}
+            .delivery-btn{flex: 0 1 calc(50% - 3px); min-width: auto; padding:8px 10px;font-size:9px;}
+            .form label{font-size:10px;}
+            .form input, .form select{padding:9px;font-size:11px;border-radius:4px;}
+            .radios{gap:6px;}
+            .radio{padding:5px 6px;font-size:10px;}
+            .radio input{margin-right:4px;}
+            .btn{padding:10px;font-size:10px;}
+            footer{font-size:9px;margin-top:12px;}
+        }
+        @media(max-width:480px){
+            body{padding:8px;}
+            header{padding:0;margin-bottom:10px;}
+            h1{font-size:13px;margin-bottom:4px;}
+            .item{gap:6px;padding:8px 0;grid-template-columns:45px 1fr auto auto;align-items:center;}
+            .thumb{width:45px;height:60px;}
+            .name{font-size:11px;}
+            .meta{font-size:9px;}
+            .price{font-size:11px;}
+            .remove{padding:9px 10px;font-size:13px;min-width:40px;height:40px;}
+            .summary{padding:8px 0;font-size:11px;}
+            .delivery-options{flex-direction:column;gap:6px;}
+            .delivery-btn{flex: 1; min-width: auto; padding:8px 10px;font-size:9px;}
+            .form label{font-size:9px;}
+            .form input, .form select{padding:8px;font-size:10px;}
+            .radios{gap:4px;flex-direction:column;}
+            .radio{padding:4px 6px;font-size:9px;}
+            .btn{padding:8px;font-size:9px;}
+            footer{font-size:8px;margin-top:10px;}
+        }
+    </style>
 </head>
 <body>
+    <header>
+        <span class="brand" data-nav="/design">STONE</span>
+        <span class="bag" data-nav="/cart">Bag <span class="bag-count">{{ bag_count or 0 }}</span></span>
+    </header>
 
+    <h1 style="font-size:18px;letter-spacing:0.08em;text-transform:uppercase;margin-bottom:10px;">Корзина</h1>
+
+    <div class="list">
+        {% for p in cart_products %}
+        <div class="item" data-id="{{ p.id }}" data-size="{{ p.cart_size or '' }}" data-price="{{ p.price }}" data-quantity="{{ p.quantity }}">
+            <div class="thumb"><img src="{{ p.image_url or '/static/images/placeholder.jpg' }}" alt="{{ p.name }}"></div>
+            <div>
+                <div class="name">{{ p.name }}</div>
+                {% if p.brand %}<div class="meta">{{ p.brand }}</div>{% endif %}
+                {% if p.cart_size %}<div class="meta">Размер: {{ p.cart_size }}</div>{% endif %}
+                <div class="meta">Qty: <span class="qty-value">{{ p.quantity }}</span></div>
+            </div>
+            <div class="price line-price">{{ p.price_formatted }}</div>
+            <button class="remove" type="button" title="Видалити">✕</button>
+        </div>
+        {% else %}
+        <div class="item" style="grid-template-columns:1fr;">
+            <div class="name">Корзина пуста</div>
+        </div>
+        {% endfor %}
+    </div>
+
+    <div class="summary">
+        <div class="meta">Итого</div>
+        <div class="price" id="totalPrice">{{ total_formatted }}</div>
+    </div>
+
+    <div class="form">
+        <div style="margin-bottom: 4px; font-size:12px; text-transform:uppercase; letter-spacing:0.08em;">Выберите доставку</div>
+        <div class="delivery-options">
+            <button type="button" class="delivery-btn active" data-delivery="cdek">СДЭК</button>
+            <button type="button" class="delivery-btn" data-delivery="courier">Курьер</button>
+            <button type="button" class="delivery-btn" data-delivery="pickup">Самовывоз</button>
+        </div>
+        <label>ФИО<input type="text" placeholder="Иванов Иван"></label>
+        <label>Телефон<input type="text" placeholder="+7"></label>
+        <label>Адрес / ПВЗ<input type="text" placeholder="Адрес доставки или пункт выдачи"></label>
+    </div>
+
+    <button class="btn" id="payBtn">Оплатить</button>
+
+    <footer class="meta" style="margin-top:18px;">STONE · {{ current_year }}</footer>
+
+    <script>
+        function readCart() {
+            const raw = document.cookie.split('; ').find(r => r.startsWith('cart='));
+            if (!raw) return [];
+            try { return JSON.parse(decodeURIComponent(raw.split('=')[1])) || []; } catch(e){ return []; }
+        }
+        function writeCart(items) {
+            document.cookie = 'cart=' + encodeURIComponent(JSON.stringify(items)) + ';path=/;max-age=2592000';
+        }
+        function formatPrice(num){
+            const n = isNaN(num) ? 0 : num;
+            return new Intl.NumberFormat('ru-RU').format(Math.round(n)) + ' RUB';
+        }
+        function updateTotals(){
+            let total = 0;
+            document.querySelectorAll('.item[data-id]').forEach(item=>{
+                const price = parseFloat(item.dataset.price||0);
+                const qty = parseInt(item.dataset.quantity||1);
+                total += price * qty;
+                const line = item.querySelector('.line-price');
+                if (line) line.textContent = formatPrice(price * qty);
+            });
+            const totalEl = document.getElementById('totalPrice');
+            if (totalEl) totalEl.textContent = formatPrice(total);
+            const cart = readCart();
+            const bagTotal = cart.reduce((s,i)=>s+(i.quantity||1),0);
+            document.querySelectorAll('.bag-count').forEach(el=>el.textContent = bagTotal);
+        }
+        document.querySelectorAll('.remove').forEach(btn=>{
+            btn.addEventListener('click', (e)=>{
+                e.preventDefault();
+                e.stopPropagation();
+                removeItem(btn);
+            });
+        });
+
+        // Свайп для удаления
+        document.querySelectorAll('.item[data-id]').forEach(item => {
+            let startX = 0;
+            let endX = 0;
+
+            item.addEventListener('touchstart', (e) => {
+                startX = e.touches[0].clientX;
+            }, false);
+
+            item.addEventListener('touchend', (e) => {
+                endX = e.changedTouches[0].clientX;
+                const diff = startX - endX;
+                // Свайп влево более чем на 50px - удаление
+                if (diff > 50) {
+                    const removeBtn = item.querySelector('.remove');
+                    if (removeBtn) removeItem(removeBtn);
+                }
+            }, false);
+        });
+
+        function removeItem(btn) {
+            const item = btn.closest('.item');
+            const pid = parseInt(item.dataset.id);
+            const rawSize = (item.dataset.size || '').trim();
+            const size = rawSize || null;
+            const cart = readCart();
+            const foundIndex = cart.findIndex(i => i.product_id === pid && (i.size || null) === size);
+            if (foundIndex === -1) return;
+            const updated = cart.filter((_, idx) => idx !== foundIndex);
+            writeCart(updated);
+            item.style.opacity = '0';
+            item.style.transition = 'opacity 0.2s ease';
+            setTimeout(() => {
+                item.remove();
+                updateTotals();
+                if (!document.querySelector('.item[data-id]')) location.reload();
+            }, 200);
+        }
+        document.querySelectorAll('[data-nav]').forEach(el=>el.addEventListener('click', ()=>{ window.location.href = el.dataset.nav; }));
+
+        // Delivery button toggle
+        document.querySelectorAll('.delivery-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                document.querySelectorAll('.delivery-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+            });
+        });
+
+        updateTotals();
+    </script>
 </body>
 </html>

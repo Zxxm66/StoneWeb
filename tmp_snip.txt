@@ -1,0 +1,90 @@
+0380:         cursor.execute("SELECT COUNT(*) FROM categories")
+0381:         if cursor.fetchone()[0] == 0:
+0382:             categories = [
+0383:                 ('Sneakers', 'sneakers', None),
+0384:                 ('Boots', 'boots', None),
+0385:                 ('Sandals', 'sandals', None),
+0386:                 ('Accessories', 'accessories', None)
+0387:             ]
+0388: 
+0389:             cursor.executemany("""
+0390:                 INSERT INTO categories (name, slug, parent_id)
+0391:                 VALUES (?, ?, ?)
+0392:             """, categories)
+0393:             logger.info("✅ Добавлены тестовые категории")
+0394: 
+0395:         # Добавляем тестовые товары
+0396:         cursor.execute("SELECT COUNT(*) FROM products")
+0397:         if cursor.fetchone()[0] == 0:
+0398:             products = [
+0399:                 ('KPOCCOBKM', 'kpoccobkm-1', 'Premium sneakers with unique design', 120.00, 150.00,
+0400:                  '/static/images/placeholder.jpg', '["/static/images/placeholder.jpg"]', 1, 'STONE', 'STN-001', 'Black',
+0401:                  '42', 'Leather', 20, 10, True),
+0402:                 ('KPOCCOBKM Pro', 'kpoccobkm-pro', 'Advanced version with better materials', 140.00, 180.00,
+0403:                  '/static/images/placeholder.jpg', '["/static/images/placeholder.jpg"]', 1, 'STONE', 'STN-002', 'White',
+0404:                  '40-45', 'Suede', 22, 8, True),
+0405:                 ('KPOCCOBKM Lite', 'kpoccobkm-lite', 'Lightweight version for everyday wear', 130.00, None,
+0406:                  '/static/images/placeholder.jpg', '["/static/images/placeholder.jpg"]', 1, 'STONE', 'STN-003', 'Gray',
+0407:                  '39-44', 'Mesh', 0, 15, True),
+0408:                 ('KPOCCOBKM Ultra', 'kpoccobkm-ultra', 'Ultimate performance sneakers', 150.00, 200.00,
+0409:                  '/static/images/placeholder.jpg', '["/static/images/placeholder.jpg"]', 1, 'STONE', 'STN-004',
+0410:                  'Black/White', '41-43', 'Leather/Mesh', 25, 5, True)
+0411:             ]
+0412: 
+0413:             cursor.executemany("""
+0414:                 INSERT INTO products (name, slug, description, price, compare_at_price, image_url, gallery, category_id, brand, sku, color, size, material, discount_percent, quantity, is_featured)
+0415:                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+0416:             """, products)
+0417:             logger.info("✅ Добавлены тестовые товары")
+0418: 
+0419:         # Добавляем карусель
+0420:         cursor.execute("SELECT COUNT(*) FROM carousel_items")
+0421:         if cursor.fetchone()[0] == 0:
+0422:             carousel_items = [
+0423:                 ('New Collection 2024', 'Discover the latest designs', '/static/images/placeholder.jpg', '/catalog',
+0424:                  'SHOP NOW'),
+0425:                 ('Limited Edition', 'Exclusive items available', '/static/images/placeholder.jpg',
+0426:                  '/catalog?filter=limited', 'VIEW'),
+0427:                 ('Summer Sale', 'Up to 50% off selected items', '/static/images/placeholder.jpg',
+0428:                  '/catalog?filter=sale', 'SHOP SALE')
+0429:             ]
+0430: 
+0431:             cursor.executemany("""
+0432:                 INSERT INTO carousel_items (title, subtitle, image_url, link_url, button_text)
+0433:                 VALUES (?, ?, ?, ?, ?)
+0434:             """, carousel_items)
+0435:             logger.info("✅ Добавлены карусельные элементы")
+0436: 
+0437:         conn.commit()
+0438:         logger.info("✅ База данных магазина инициализирована")
+0439: 
+0440:     except Exception as e:
+0441:         logger.error(f"❌ Ошибка инициализации БД: {e}")
+0442:         conn.rollback()
+0443:     finally:
+0444:         conn.close()
+0445: 
+0446: 
+0447: # ============== ВИДЖЕТЫ ==============
+0448: 
+0449: async def get_web_widgets():
+0450:     """Получает активные виджеты для магазина"""
+0451:     try:
+0452:         conn = get_db_connection()
+0453:         cursor = conn.cursor()
+0454: 
+0455:         cursor.execute("""
+0456:             SELECT widget_type, title, content, config, position
+0457:             FROM web_widgets 
+0458:             WHERE is_active = TRUE 
+0459:             ORDER BY position, sort_order
+0460:         """)
+0461: 
+0462:         widgets = []
+0463:         for row in cursor.fetchall():
+0464:             widget = dict(row)
+0465:             if widget.get('config'):
+0466:                 try:
+0467:                     widget['config'] = json.loads(widget['config'])
+0468:                 except:
+0469:                     widget['config'] = {}

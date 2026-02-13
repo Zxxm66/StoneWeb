@@ -1,0 +1,40 @@
+0111:     conn = sqlite3.connect(DB_PATH)
+0112:     conn.row_factory = sqlite3.Row
+0113:     return conn
+0114: 
+0115: 
+0116: def ensure_columns(conn, table_name, columns):
+0117:     """Add missing columns to a table if they do not exist."""
+0118:     cur = conn.cursor()
+0119:     cur.execute(f"PRAGMA table_info({table_name})")
+0120:     existing = {row[1] for row in cur.fetchall()}
+0121:     for name, ddl in columns.items():
+0122:         if name not in existing:
+0123:             cur.execute(f"ALTER TABLE {table_name} ADD COLUMN {name} {ddl}")
+0124:             logger.info(f"Added column {name} to {table_name}")
+0125: 
+0126: 
+0127: def slugify(value):
+0128:     """Make a simple URL slug from a string."""
+0129:     if not value:
+0130:         return None
+0131:     slug = re.sub(r'[^a-z0-9]+', '-', value.lower()).strip('-')
+0132:     return slug or None
+0133: 
+0134: 
+0135: def migrate_schema(conn):
+0136:     """Ensure legacy databases have the columns expected by current queries."""
+0137:     ensure_columns(conn, 'products', {
+0138:         'slug': 'TEXT',
+0139:         'description': 'TEXT',
+0140:         'compare_at_price': 'DECIMAL(10, 2)',
+0141:         'gallery': 'TEXT',
+0142:         'color': 'VARCHAR(50)',
+0143:         'size': 'VARCHAR(50)',
+0144:         'material': 'VARCHAR(100)',
+0145:         'is_featured': 'BOOLEAN DEFAULT FALSE',
+0146:         'views': 'INTEGER DEFAULT 0',
+0147:         'is_active': 'BOOLEAN DEFAULT TRUE',
+0148:         'created_at': 'TIMESTAMP',
+0149:         'updated_at': 'TIMESTAMP'
+0150:     })

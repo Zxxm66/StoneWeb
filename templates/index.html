@@ -43,6 +43,41 @@
         @keyframes spin {
             to { transform: rotate(360deg); }
         }
+        @media (max-width: 768px) {
+            .loading {
+                padding: 40px;
+            }
+            .stone-logo {
+                font-size: 56px;
+                margin-bottom: 12px;
+            }
+            .subtitle {
+                font-size: 12px;
+                margin-bottom: 20px;
+            }
+            .loader {
+                width: 32px;
+                height: 32px;
+            }
+        }
+        @media (max-width: 480px) {
+            .loading {
+                padding: 32px;
+            }
+            .stone-logo {
+                font-size: 44px;
+                margin-bottom: 10px;
+            }
+            .subtitle {
+                font-size: 11px;
+                margin-bottom: 16px;
+            }
+            .loader {
+                width: 28px;
+                height: 28px;
+                border-width: 1.5px;
+            }
+        }
     </style>
 </head>
 <body>

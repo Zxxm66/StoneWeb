@@ -1,0 +1,97 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>STONE · Подарочный сертификат</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600&display=swap" rel="stylesheet">
+    <style>
+        :root { --fg:#111; --muted:#666; --border:#e5e5e5; }
+        *{margin:0;padding:0;box-sizing:border-box;}
+        body{
+            font-family:'Space Grotesk',-apple-system,BlinkMacSystemFont,sans-serif;
+            background:#fff;
+            color:var(--fg);
+            line-height:1.4;
+            letter-spacing:-0.01em;
+            padding:16px;
+        }
+        .shell{
+            max-width:720px;
+            margin:0 auto;
+            border:1px solid var(--border);
+            padding:20px 18px;
+        }
+        header{
+            display:flex;
+            justify-content:space-between;
+            align-items:center;
+            margin-bottom:18px;
+        }
+        .brand{font-weight:700; letter-spacing:0.22em;}
+        .bag{display:inline-flex;align-items:center;gap:6px;}
+        .bag-count{
+            min-width:18px;padding:2px 6px;border-radius:999px;
+            background:#111;color:#fff;font-size:11px;line-height:1;text-align:center;
+        }
+        h1{font-size:22px; letter-spacing:0.08em; text-transform:uppercase; margin-bottom:8px;}
+        p.lead{color:var(--muted); margin-bottom:20px;}
+        form{display:flex;flex-direction:column;gap:14px;}
+        label{font-size:13px; letter-spacing:0.04em; text-transform:uppercase;}
+        input[type=\"number\"], input[type=\"text\"]{
+            width:100%; padding:12px; border:1px solid var(--border);
+            font-size:15px; border-radius:6px;
+        }
+        .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(140px,1fr));gap:10px;}
+        .preset{
+            border:1px solid var(--border); padding:12px; text-align:center;
+            cursor:pointer; transition:all .2s ease; border-radius:6px;
+        }
+        .preset.active, .preset:hover{border-color:#111; background:#111; color:#fff;}
+        .button{
+            padding:14px 12px; border:none; background:#111; color:#fff;
+            font-size:13px; letter-spacing:0.12em; text-transform:uppercase;
+            border-radius:8px; cursor:not-allowed; opacity:0.7;
+        }
+        footer{margin-top:24px; font-size:12px; color:var(--muted); text-transform:uppercase; letter-spacing:0.08em;}
+    </style>
+</head>
+<body>
+    <div class="shell">
+        <header>
+            <div class="brand">STONE</div>
+            <a class="bag" href="/cart">Bag <span class="bag-count">{{ bag_count or 0 }}</span></a>
+        </header>
+
+        <h1>Gift Card</h1>
+        <p class="lead">Введите сумму сертификата или выберите готовый номинал.</p>
+
+        <form>
+            <div class="grid" id="presets">
+                {% for v in [5000, 10000, 15000, 20000] %}
+                <div class="preset" data-value="{{ v }}">{{ "{:,.0f}".format(v).replace(',', ' ') }} ₽</div>
+                {% endfor %}
+            </div>
+            <label for="amount">Другая сумма</label>
+            <input id="amount" name="amount" type="number" min="1000" step="500" placeholder="Например 7500">
+            <button type="button" class="button" aria-disabled="true">Оплата скоро</button>
+        </form>
+
+        <footer>STONE · {{ current_year }}</footer>
+    </div>
+
+    <script>
+        const presets = document.querySelectorAll('.preset');
+        const amountInput = document.getElementById('amount');
+        presets.forEach(p => {
+            p.addEventListener('click', () => {
+                presets.forEach(el => el.classList.remove('active'));
+                p.classList.add('active');
+                amountInput.value = p.dataset.value;
+            });
+        });
+    </script>
+</body>
+</html>

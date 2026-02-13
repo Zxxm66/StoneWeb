@@ -11,8 +11,10 @@ from aiohttp import web
 from pathlib import Path
 import sqlite3
 import json
+import re
 import os
 import logging
+import urllib.parse
 from datetime import datetime
 from functools import wraps
 import uuid
@@ -30,21 +32,14 @@ logger = logging.getLogger(__name__)
 
 # Конфигурация
 BASE_DIR = Path(__file__).parent
-DB_PATH = os.path.join(BASE_DIR, 'data', 'shop.db')
+DB_PATH = os.path.join(BASE_DIR, 'data', 'shop (2).db')
 TEMPLATES_DIR = os.path.join(BASE_DIR, 'templates')
 STATIC_DIR = os.path.join(BASE_DIR, 'static')
 WEBAPP_DIR = os.path.join(BASE_DIR, 'webapp')
 
 
-# Создаем необходимые директории
 def create_directories():
-    """Создает необходимые директории если их нет"""
     directories = [
-        TEMPLATES_DIR,
-        STATIC_DIR,
-        WEBAPP_DIR,
-        os.path.join(WEBAPP_DIR, 'css'),
-        os.path.join(WEBAPP_DIR, 'js'),
         os.path.join(WEBAPP_DIR, 'components'),
         os.path.join(WEBAPP_DIR, 'images'),
         os.path.dirname(DB_PATH),  # папка data
@@ -110,6 +105,228 @@ def get_db_connection():
     conn = sqlite3.connect(DB_PATH)
     conn.row_factory = sqlite3.Row
     return conn
+
+
+def ensure_columns(conn, table_name, columns):
+    """Add missing columns to a table if they do not exist."""
+    cur = conn.cursor()
+    cur.execute(f"PRAGMA table_info({table_name})")
+    existing = {row[1] for row in cur.fetchall()}
+    for name, ddl in columns.items():
+        if name not in existing:
+            try:
+                cur.execute(f"ALTER TABLE {table_name} ADD COLUMN {name} {ddl}")
+                conn.commit()  # Commit immediately after each ALTER
+                logger.info(f"Added column {name} to {table_name}")
+            except sqlite3.OperationalError as e:
+                logger.warning(f"Could not add column {name} to {table_name}: {e}")
+
+
+def slugify(value):
+    """Make a simple URL slug from a string."""
+    if not value:
+        return None
+    slug = re.sub(r'[^a-z0-9]+', '-', value.lower()).strip('-')
+    return slug or None
+
+
+def migrate_schema(conn):
+    """Ensure legacy databases have the columns expected by current queries."""
+    ensure_columns(conn, 'products', {
+        'slug': 'TEXT',
+        'description': 'TEXT',
+        'compare_at_price': 'DECIMAL(10, 2)',
+        'gallery': 'TEXT',
+        'color': 'VARCHAR(50)',
+        'size': 'VARCHAR(50)',
+        'material': 'VARCHAR(100)',
+        'is_featured': 'BOOLEAN DEFAULT FALSE',
+        'views': 'INTEGER DEFAULT 0',
+        'is_active': 'BOOLEAN DEFAULT TRUE',
+        'created_at': 'TIMESTAMP',
+        'updated_at': 'TIMESTAMP'
+    })
+
+    ensure_columns(conn, 'categories', {
+        'slug': 'VARCHAR(100)',
+        'sort_order': 'INTEGER DEFAULT 0',
+        'created_at': 'TIMESTAMP'
+    })
+
+    ensure_columns(conn, 'web_widgets', {
+        'is_active': 'BOOLEAN DEFAULT TRUE',
+        'position': 'INTEGER DEFAULT 0',
+        'sort_order': 'INTEGER DEFAULT 0',
+        'created_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP',
+        'updated_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    })
+
+    ensure_columns(conn, 'carousel_items', {
+        'is_active': 'BOOLEAN DEFAULT TRUE',
+        'sort_order': 'INTEGER DEFAULT 0',
+        'created_at': 'TIMESTAMP DEFAULT CURRENT_TIMESTAMP'
+    })
+
+    cur = conn.cursor()
+    cur.execute("UPDATE products SET is_active = 1 WHERE is_active IS NULL")
+    cur.execute("UPDATE products SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+    cur.execute("UPDATE products SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL")
+    cur.execute("SELECT id, name FROM products WHERE slug IS NULL OR slug = ''")
+    for pid, name in cur.fetchall():
+        slug = slugify(name) or f"product-{pid}"
+        cur.execute("UPDATE products SET slug = ? WHERE id = ?", (slug, pid))
+
+    cur.execute("UPDATE categories SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+    cur.execute("SELECT id, name FROM categories WHERE slug IS NULL OR slug = ''")
+    for cid, name in cur.fetchall():
+        slug = slugify(name) or f"category-{cid}"
+        cur.execute("UPDATE categories SET slug = ? WHERE id = ?", (slug, cid))
+
+    cur.execute("UPDATE web_widgets SET is_active = 1 WHERE is_active IS NULL")
+    cur.execute("UPDATE web_widgets SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+    cur.execute("UPDATE web_widgets SET updated_at = CURRENT_TIMESTAMP WHERE updated_at IS NULL")
+
+    cur.execute("UPDATE carousel_items SET is_active = 1 WHERE is_active IS NULL")
+    cur.execute("UPDATE carousel_items SET created_at = CURRENT_TIMESTAMP WHERE created_at IS NULL")
+
+    conn.commit()
+
+
+def normalize_image(raw):
+    """Return a single usable image URL from legacy or list storage."""
+    placeholder = '/static/images/placeholder.jpg'
+    if not raw or raw == 'None':
+        return placeholder
+    if isinstance(raw, str) and raw.strip().startswith('['):
+        try:
+            data = json.loads(raw)
+            if isinstance(data, list) and data:
+                return data[0]
+        except Exception:
+            return placeholder
+    return raw
+
+
+def get_cart_count(request):
+    """Return cart item count from a cookie if present."""
+    for key in ('cart', 'cart_items'):
+        raw = request.cookies.get(key)
+        if not raw:
+            continue
+        try:
+            decoded = urllib.parse.unquote(raw)
+            data = json.loads(decoded)
+            if isinstance(data, list):
+                total = 0
+                for item in data:
+                    qty = item.get('quantity') if isinstance(item, dict) else 1
+                    try:
+                        total += int(qty)
+                    except Exception:
+                        total += 1
+                return total
+        except Exception:
+            continue
+    return 0
+
+
+def parse_sizes(size_value):
+    """Split size strings into list of tokens/ranges for display."""
+    if not size_value:
+        return []
+    text = str(size_value).replace(',', '.')
+    tokens = []
+    for part in re.split(r'[/;\\s]+', text):
+        if not part:
+            continue
+        if '-' in part:
+            try:
+                start_s, end_s = part.split('-', 1)
+                start_f = float(start_s)
+                end_f = float(end_s)
+                step = 0.5 if (start_f % 1 or end_f % 1) else 1
+                cur = start_f
+                while cur <= end_f + 1e-9:
+                    tokens.append(f"{cur}".rstrip('0').rstrip('.') if '.' in f"{cur}" else str(int(cur)))
+                    cur = round(cur + step, 2)
+                continue
+            except Exception:
+                pass
+        tokens.append(part)
+    seen = set()
+    result = []
+    for t in tokens:
+        t_norm = t
+        if t_norm not in seen:
+            seen.add(t_norm)
+            result.append(t_norm)
+    try:
+        result.sort(key=lambda x: float(str(x).replace(',', '.')))
+    except Exception:
+        pass
+    return result
+
+
+def list_carousel_images():
+    """Return list of image URLs from static/images/carousel."""
+    images_dir = os.path.join(STATIC_DIR, 'images', 'carousel')
+    urls = []
+    if not os.path.isdir(images_dir):
+        return urls
+    for fname in sorted(os.listdir(images_dir)):
+        if fname.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
+            urls.append(f'/static/images/carousel/{fname}')
+    return urls
+
+
+def parse_cart_cookie(request):
+    """Parse cart cookie into list of {'product_id','quantity'}."""
+    raw = request.cookies.get('cart') or request.cookies.get('cart_items')
+    if not raw:
+        return []
+    try:
+        decoded = urllib.parse.unquote(raw)
+        data = json.loads(decoded)
+        if isinstance(data, list):
+            items = []
+            for entry in data:
+                if isinstance(entry, dict) and entry.get('product_id'):
+                    try:
+                        pid = int(entry['product_id'])
+                    except Exception:
+                        continue
+                    qty = entry.get('quantity', 1)
+                    try:
+                        qty = int(qty)
+                    except Exception:
+                        qty = 1
+                    items.append({
+                        'product_id': pid,
+                        'quantity': max(qty, 1),
+                        'size': entry.get('size')
+                    })
+            return items
+    except Exception:
+        return []
+    return []
+
+
+def format_product_row(row):
+    """Normalize product dict with formatted price fields."""
+    product = dict(row)
+    raw_size = product.get('size_value') or product.get('size')
+    if raw_size:
+        product['size'] = raw_size
+    product['image_url'] = normalize_image(product.get('image_url'))
+    price = float(product.get('price', 0) or 0)
+    product['price_formatted'] = f"{price:,.0f} RUB".replace(',', ' ')
+    if product.get('compare_at_price'):
+        compare_price = float(product['compare_at_price'] or 0)
+        product['compare_price_formatted'] = f"{compare_price:,.0f} RUB".replace(',', ' ')
+        if compare_price > price:
+            discount = ((compare_price - price) / compare_price) * 100
+            product['discount_percent'] = int(discount)
+    return product
 
 
 def init_store_db():
@@ -188,6 +405,8 @@ def init_store_db():
                 created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
             )
         """)
+
+        migrate_schema(conn)
 
         # Добавляем тестовые виджеты если таблица пуста
         cursor.execute("SELECT COUNT(*) FROM web_widgets")
@@ -301,7 +520,7 @@ async def get_web_widgets():
                     widget['config'] = {}
             widgets.append(widget)
 
-        return widgets
+        return 
     except Exception as e:
         logger.error(f"Ошибка получения виджетов: {e}")
         return []
@@ -368,28 +587,8 @@ async def api_products(request):
 
         products = []
         for row in cursor.fetchall():
-            product = dict(row)
-
-            # Обработка изображений - используем placeholder если нет изображения
-            if not product.get('image_url') or product['image_url'] == 'None':
-                product['image_url'] = '/static/images/placeholder.jpg'
-
-            # Основное изображение
-            product['main_image'] = product.get('image_url', '/static/images/placeholder.jpg')
-
-            # Форматируем цены
-            price = float(product.get('price', 0))
-            product['price_formatted'] = f"${price:.0f}"
-
-            if product.get('compare_at_price'):
-                compare_price = float(product['compare_at_price'])
-                product['compare_price_formatted'] = f"${compare_price:.0f}"
-
-                # Рассчитываем скидку
-                if compare_price > price:
-                    discount = ((compare_price - price) / compare_price) * 100
-                    product['discount_percent'] = int(discount)
-
+            product = format_product_row(row)
+            product['main_image'] = product['image_url']
             products.append(product)
 
         conn.close()
@@ -497,6 +696,8 @@ async def api_carousel(request):
 
 # ============== ГЛАВНАЯ СТРАНИЦА ==============
 
+
+
 async def home_page(request):
     """Главная страница магазина с дизайном Balenciaga"""
     try:
@@ -515,34 +716,48 @@ async def home_page(request):
 
         # Популярные товары
         cursor.execute("""
-            SELECT id, name, price, image_url, discount_percent, brand
-            FROM products 
-            WHERE is_active = TRUE AND quantity > 0
-            ORDER BY is_featured DESC, created_at DESC
+            SELECT p.id, p.name, p.price, p.compare_at_price, p.image_url, p.discount_percent,
+                   p.brand, p.color, p.slug, p.size, p.size_id, s.value AS size_value
+            FROM products p
+            LEFT JOIN sizes s ON p.size_id = s.id
+            WHERE p.is_active = TRUE AND p.quantity > 0
+            ORDER BY p.is_featured DESC, p.created_at DESC
             LIMIT 4
         """)
         featured_products = []
         for row in cursor.fetchall():
-            product = dict(row)
-            # Используем placeholder если нет изображения
-            if not product.get('image_url') or product['image_url'] == 'None':
-                product['image_url'] = '/static/images/placeholder.jpg'
+            product = format_product_row(row)
             featured_products.append(product)
 
-        # Карусель
+        # Карусель: берем файлы из static/images/carousel, fallback к БД
+        carousel_items = [{'image_url': url} for url in list_carousel_images()]
+        if not carousel_items:
+            cursor.execute("""
+                SELECT image_url
+                FROM carousel_items
+                WHERE is_active = TRUE
+                ORDER BY sort_order
+                LIMIT 3
+            """)
+            for row in cursor.fetchall():
+                item = dict(row)
+                item['image_url'] = normalize_image(item.get('image_url'))
+                carousel_items.append(item)
+
+        # Категории
         cursor.execute("""
-            SELECT title, subtitle, image_url, link_url, button_text
-            FROM carousel_items 
-            WHERE is_active = TRUE 
-            ORDER BY sort_order
-            LIMIT 3
+            SELECT id, name, slug, parent_id
+            FROM categories
+            ORDER BY sort_order, name
         """)
-        carousel_items = []
-        for row in cursor.fetchall():
-            item = dict(row)
-            if not item.get('image_url') or item['image_url'] == 'None':
-                item['image_url'] = '/static/images/placeholder.jpg'
-            carousel_items.append(item)
+        category_rows = [dict(row) for row in cursor.fetchall()]
+
+        categories = [c for c in category_rows if not c.get('parent_id')]
+        subcategories = {}
+        for row in category_rows:
+            pid = row.get('parent_id')
+            if pid:
+                subcategories.setdefault(pid, []).append(row)
 
         conn.close()
 
@@ -558,6 +773,9 @@ async def home_page(request):
             'widgets': widgets,
             'featured_products': featured_products,
             'carousel_items': carousel_items,
+            'categories': categories,
+            'subcategories': subcategories,
+            'bag_count': get_cart_count(request),
             'current_year': datetime.now().year,
             'range': range  # добавляем функцию range в контекст
         }
@@ -583,22 +801,387 @@ async def home_page(request):
 
 async def catalog_page(request):
     """Страница каталога"""
-    return await serve_static(request)
+    try:
+        conn = get_db_connection()
+        cursor = conn.cursor()
 
+        cursor.execute("""
+            SELECT id, name, slug, parent_id, sort_order
+            FROM categories
+            ORDER BY sort_order, name
+        """)
+        category_rows = [dict(row) for row in cursor.fetchall()]
+        categories = [c for c in category_rows if not c.get('parent_id')]
+        subcategories = {}
+        for row in category_rows:
+            pid = row.get('parent_id')
+            if pid:
+                subcategories.setdefault(pid, []).append(row)
 
+        category_slug = request.query.get('category')
+        brand = request.query.get('brand')
+        color = request.query.get('color')
+        price_min = request.query.get('price_min')
+        price_max = request.query.get('price_max')
+        size = request.query.get('size')
+
+        current_category = next((c for c in category_rows if c['slug'] == category_slug), None) if category_slug else None
+        current_category_id = current_category['id'] if current_category else None
+        # For UI we still need parent to highlight subcats
+        current_parent_id = current_category['parent_id'] if current_category and current_category.get('parent_id') else None
+
+        if category_slug:
+            logger.info(f"📌 Filter by category: {category_slug} -> ID: {current_category_id}")
+
+        def collect_descendants(rows, root_id):
+            ids = []
+            if not root_id:
+                return ids
+            queue = [root_id]
+            while queue:
+                cid = queue.pop(0)
+                if cid in ids:
+                    continue
+                ids.append(cid)
+                for r in rows:
+                    if r.get('parent_id') == cid:
+                        queue.append(r['id'])
+            return ids
+
+        # For filtering, use the selected category (which will include descendants if it has children)
+        root_category_id = current_category_id if current_category else None
+        allowed_ids = collect_descendants(category_rows, root_category_id)
+
+        if allowed_ids and category_slug:
+            logger.info(f"✓ Category filter IDs: {allowed_ids}")
+
+        query = """
+            SELECT p.id, p.name, p.price, p.compare_at_price, p.image_url, 
+                   p.discount_percent, p.brand, p.color, p.slug,
+                   p.size, p.size_id, s.value AS size_value
+            FROM products p
+            LEFT JOIN categories c ON p.category_id = c.id
+            LEFT JOIN sizes s ON p.size_id = s.id
+            WHERE p.is_active = TRUE AND p.quantity > 0
+        """
+        params = []
+
+        if category_slug and allowed_ids:
+            placeholders = ",".join("?" * len(allowed_ids))
+            query += f" AND p.category_id IN ({placeholders})"
+            params.extend(allowed_ids)
+        elif not category_slug:
+            allowed_ids = None
+
+        if brand:
+            query += " AND LOWER(p.brand) = LOWER(?)"
+            params.append(brand)
+
+        if color:
+            query += " AND LOWER(p.color) = LOWER(?)"
+            params.append(color)
+
+        if price_min:
+            try:
+                params.append(float(price_min))
+                query += " AND p.price >= ?"
+            except ValueError:
+                pass
+
+        if price_max:
+            try:
+                params.append(float(price_max))
+                query += " AND p.price <= ?"
+            except ValueError:
+                pass
+
+        query += " ORDER BY p.is_featured DESC, p.created_at DESC"
+
+        cursor.execute(query, params)
+        merged = {}
+        size_token = size.lower() if size else None
+        for row in cursor.fetchall():
+            product = format_product_row(row)
+            sizes_list = parse_sizes(product.get('size'))
+            if size_token:
+                has_size = any(str(s).lower() == size_token for s in sizes_list)
+                if not has_size:
+                    continue
+            key = product.get('slug') or product['id']
+            if key in merged:
+                existing = merged[key]
+                for s in sizes_list:
+                    if s not in existing['sizes_display']:
+                        existing['sizes_display'].append(s)
+            else:
+                product['sizes_display'] = sizes_list
+                merged[key] = product
+        products = list(merged.values())
+
+        if category_slug:
+            logger.info(f"📦 Found {len(products)} products in category {category_slug}")
+
+        available_brands = []
+        available_sizes = []
+        available_colors = []
+        filter_ids = allowed_ids if allowed_ids else None
+
+        # Get available filters
+        if filter_ids:
+            placeholders = ",".join("?" * len(filter_ids))
+            cursor.execute(f"""
+                SELECT DISTINCT brand FROM products
+                WHERE is_active = TRUE AND quantity > 0 AND brand IS NOT NULL AND brand != ''
+                AND category_id IN ({placeholders})
+            """, filter_ids)
+            available_brands = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute(f"""
+                SELECT DISTINCT COALESCE(s.value, p.size) AS size_value
+                FROM products p
+                LEFT JOIN sizes s ON p.size_id = s.id
+                WHERE p.is_active = TRUE AND p.quantity > 0
+                  AND COALESCE(s.value, p.size) IS NOT NULL AND COALESCE(s.value, p.size) != ''
+                  AND p.category_id IN ({placeholders})
+            """, filter_ids)
+            sizes_raw = [row[0] for row in cursor.fetchall()]
+            sizes_tokens = []
+            for s in sizes_raw:
+                sizes_tokens.extend(parse_sizes(s))
+            available_sizes = sorted({t for t in sizes_tokens})
+
+            cursor.execute(f"""
+                SELECT DISTINCT color FROM products
+                WHERE is_active = TRUE AND quantity > 0 AND color IS NOT NULL AND color != ''
+                AND category_id IN ({placeholders})
+            """, filter_ids)
+            available_colors = [row[0] for row in cursor.fetchall()]
+        else:
+            # If no category selected, get filters from ALL active products
+            cursor.execute("""
+                SELECT DISTINCT brand FROM products
+                WHERE is_active = TRUE AND quantity > 0 AND brand IS NOT NULL AND brand != ''
+            """)
+            available_brands = [row[0] for row in cursor.fetchall()]
+
+            cursor.execute("""
+                SELECT DISTINCT COALESCE(s.value, p.size) AS size_value
+                FROM products p
+                LEFT JOIN sizes s ON p.size_id = s.id
+                WHERE p.is_active = TRUE AND p.quantity > 0
+                  AND COALESCE(s.value, p.size) IS NOT NULL AND COALESCE(s.value, p.size) != ''
+            """)
+            sizes_raw = [row[0] for row in cursor.fetchall()]
+            sizes_tokens = []
+            for s in sizes_raw:
+                sizes_tokens.extend(parse_sizes(s))
+            available_sizes = sorted({t for t in sizes_tokens})
+
+            cursor.execute("""
+                SELECT DISTINCT color FROM products
+                WHERE is_active = TRUE AND quantity > 0 AND color IS NOT NULL AND color != ''
+            """)
+            available_colors = [row[0] for row in cursor.fetchall()]
+
+        active_filters = []
+        if category_slug:
+            category_name = next((c['name'] for c in category_rows if c['slug'] == category_slug), category_slug)
+            active_filters.append({'label': 'Категория', 'value': category_name})
+        if brand:
+            active_filters.append({'label': 'Бренд', 'value': brand})
+        if color:
+            active_filters.append({'label': 'Цвет', 'value': color})
+        if size:
+            active_filters.append({'label': 'Размер', 'value': size})
+        if price_min:
+            active_filters.append({'label': 'Мин. цена', 'value': price_min})
+        if price_max:
+            active_filters.append({'label': 'Макс. цена', 'value': price_max})
+
+        conn.close()
+
+        context = {
+            'products': products,
+            'categories': categories,
+            'product_count': len(products),
+            'current_category': category_slug,
+            'current_category_id': current_category_id,
+            'current_parent_id': current_parent_id,
+            'subcategories': subcategories,
+            'active_filters': active_filters,
+            'available_brands': available_brands,
+            'available_sizes': available_sizes,
+            'available_colors': available_colors,
+            'current_brand': brand,
+            'current_size': size,
+            'current_color': color,
+            'bag_count': get_cart_count(request),
+            'current_year': datetime.now().year
+        }
+
+        return aiohttp_jinja2.render_template('catalog.html', request, context)
+    except Exception as e:
+        logger.error(f"Ошибка каталога: {e}")
+        raise
+
+categories = [
+    {
+        'id': 1,
+        'name': 'Одежда',
+        'slug': 'odezhda',
+        'has_subcategories': True
+    },
+    {
+        'id': 2,
+        'name': 'Кроссовки',
+        'slug': 'krossovki',
+        'has_subcategories': False
+    },
+    {
+        'id': 3,
+        'name': 'Аксессуары',
+        'slug': 'aksessuary',
+        'has_subcategories': True
+    }
+]
+
+subcategories = {
+    1: [  # Для категории "Одежда" (ID: 1)
+        {'id': 101, 'name': 'Футболки', 'slug': 'futbolki'},
+        {'id': 102, 'name': 'Штаны', 'slug': 'shtany'},
+        {'id': 103, 'name': 'Куртки', 'slug': 'kurtki'},
+        {'id': 104, 'name': 'Шорты', 'slug': 'shorty'},
+        {'id': 105, 'name': 'Кофты', 'slug': 'kofty'}
+    ],
+    3: [  # Для категории "Аксессуары" (ID: 3)
+        {'id': 301, 'name': 'Сумки', 'slug': 'sumki'},
+        {'id': 302, 'name': 'Очки', 'slug': 'ochki'},
+        {'id': 303, 'name': 'Кепки и шапки', 'slug': 'kepki-shapki'},
+        {'id': 304, 'name': 'Носки', 'slug': 'noski'},
+        {'id': 305, 'name': 'Коллекционное', 'slug': 'kollektsionnoe'},
+        {'id': 306, 'name': 'Другое', 'slug': 'drugoe'}
+    ]
+}
 async def product_page(request):
     """Страница товара"""
-    return await serve_static(request)
+    try:
+        pid = request.match_info.get('id')
+        conn = get_db_connection()
+        cursor = conn.cursor()
+
+        product = None
+        if pid and str(pid).isdigit():
+            cursor.execute("""
+                SELECT p.id, p.name, p.price, p.compare_at_price, p.image_url, p.gallery, p.description,
+                       p.discount_percent, p.brand, p.color, p.size, p.material, p.slug, p.quantity,
+                       p.size_id, s.value AS size_value
+                FROM products p
+                LEFT JOIN sizes s ON p.size_id = s.id
+                WHERE p.id = ?
+            """, (int(pid),))
+            row = cursor.fetchone()
+            if row:
+                product = format_product_row(row)
+        if product is None and pid:
+            cursor.execute("""
+                SELECT p.id, p.name, p.price, p.compare_at_price, p.image_url, p.gallery, p.description,
+                       p.discount_percent, p.brand, p.color, p.size, p.material, p.slug, p.quantity,
+                       p.size_id, s.value AS size_value
+                FROM products p
+                LEFT JOIN sizes s ON p.size_id = s.id
+                WHERE p.slug = ?
+            """, (pid,))
+            row = cursor.fetchone()
+            if row:
+                product = format_product_row(row)
+
+        if not product:
+            raise web.HTTPNotFound()
+
+        product['sizes_display'] = parse_sizes(product.get('size'))
+        gallery = []
+        if product.get('gallery'):
+            try:
+                data = json.loads(product['gallery'])
+                if isinstance(data, list):
+                    gallery = data
+            except Exception:
+                gallery = []
+        if product.get('image_url'):
+            gallery = [product['image_url']] + [g for g in gallery if g != product['image_url']]
+
+        context = {
+            'product': product,
+            'gallery': gallery,
+            'bag_count': get_cart_count(request),
+            'current_year': datetime.now().year
+        }
+        conn.close()
+        return aiohttp_jinja2.render_template('product.html', request, context)
+    except web.HTTPException:
+        raise
+    except Exception as e:
+        logger.error(f"Ошибка страницы товара: {e}")
+        raise web.HTTPNotFound()
 
 
 async def cart_page(request):
     """Страница корзины"""
-    return await serve_static(request)
+    try:
+        items = parse_cart_cookie(request)
+        cart_products = []
+        if items:
+            ids = [i['product_id'] for i in items]
+            placeholders = ",".join("?" * len(ids))
+            conn = get_db_connection()
+            cursor = conn.cursor()
+            cursor.execute(f"""
+                SELECT p.id, p.name, p.price, p.compare_at_price, p.image_url, p.size, p.brand, p.slug,
+                       p.size_id, s.value AS size_value
+                FROM products p
+                LEFT JOIN sizes s ON p.size_id = s.id
+                WHERE p.id IN ({placeholders})
+            """, ids)
+            rows = cursor.fetchall()
+            product_map = {row['id']: format_product_row(row) for row in rows}
+            for p in product_map.values():
+                p['sizes_display'] = parse_sizes(p.get('size'))
+            for it in items:
+                prod = product_map.get(it['product_id'])
+                if prod:
+                    prod = dict(prod)
+                    prod['quantity'] = it['quantity']
+                    prod['cart_size'] = it.get('size') or (prod.get('sizes_display') or [None])[0]
+                    cart_products.append(prod)
+            conn.close()
+
+        total = sum((float(p.get('price', 0)) * p.get('quantity', 1)) for p in cart_products)
+        total_formatted = f"{total:,.0f} RUB".replace(',', ' ')
+
+        context = {
+            'cart_products': cart_products,
+            'total_formatted': total_formatted,
+            'bag_count': get_cart_count(request),
+            'current_year': datetime.now().year
+        }
+        return aiohttp_jinja2.render_template('cart.html', request, context)
+    except Exception as e:
+        logger.error(f"Ошибка корзины: {e}")
+        raise web.HTTPNotFound()
 
 
 async def checkout_page(request):
     """Страница оформления заказа"""
     return await serve_static(request)
+
+
+async def gift_page(request):
+    """Страница покупки подарочного сертификата"""
+    context = {
+        'current_year': datetime.now().year,
+        'bag_count': get_cart_count(request)
+    }
+    return aiohttp_jinja2.render_template('gift.html', request, context)
 
 
 async def design_page(request):
@@ -645,6 +1228,7 @@ def setup_routes():
     app.router.add_get('/product/{id}', product_page)
     app.router.add_get('/cart', cart_page)
     app.router.add_get('/checkout', checkout_page)
+    app.router.add_get('/gift', gift_page)
 
     # Статические файлы из webapp
     app.router.add_get('/webapp/{filename}', serve_static)

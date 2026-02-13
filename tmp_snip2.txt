@@ -1,0 +1,60 @@
+0520:             WHERE p.is_active = TRUE AND p.quantity > 0
+0521:         """
+0522: 
+0523:         params = []
+0524: 
+0525:         if category:
+0526:             query += " AND c.slug = ?"
+0527:             params.append(category)
+0528: 
+0529:         if featured and featured.lower() == 'true':
+0530:             query += " AND p.is_featured = TRUE"
+0531: 
+0532:         query += " ORDER BY p.is_featured DESC, p.created_at DESC LIMIT ? OFFSET ?"
+0533:         params.extend([limit, offset])
+0534: 
+0535:         cursor.execute(query, params)
+0536: 
+0537:         products = []
+0538:         for row in cursor.fetchall():
+0539:             product = dict(row)
+0540: 
+0541:             # Обработка изображений - вытаскиваем первое изображение из галереи или placeholder
+0542:             product['image_url'] = normalize_image(product.get('image_url'))
+0543:             product['main_image'] = product['image_url']
+0544: 
+0545:             # Форматируем цены
+0546:             price = float(product.get('price', 0))
+0547:             product['price_formatted'] = f"${price:.0f}"
+0548: 
+0549:             if product.get('compare_at_price'):
+0550:                 compare_price = float(product['compare_at_price'])
+0551:                 product['compare_price_formatted'] = f"${compare_price:.0f}"
+0552: 
+0553:                 # Рассчитываем скидку
+0554:                 if compare_price > price:
+0555:                     discount = ((compare_price - price) / compare_price) * 100
+0556:                     product['discount_percent'] = int(discount)
+0557: 
+0558:             products.append(product)
+0559: 
+0560:         conn.close()
+0561: 
+0562:         return web.json_response({
+0563:             'success': True,
+0564:             'products': products,
+0565:             'total': len(products),
+0566:             'limit': limit,
+0567:             'offset': offset
+0568:         })
+0569: 
+0570:     except Exception as e:
+0571:         logger.error(f"Ошибка API товаров: {e}")
+0572:         return web.json_response({
+0573:             'success': False,
+0574:             'error': str(e)
+0575:         }, status=500)
+0576: 
+0577: 
+0578: async def api_widgets(request):
+0579:     """API для получения виджетов"""
